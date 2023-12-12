@@ -2,9 +2,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class BloomFilter {
-    int length;
-    byte[] cells;
-    int numberOfHashFunctions;
+    private final int length;
+    private final byte[] cells;
+    private final int numberOfHashFunctions;
 
     public BloomFilter(int length, int numberOfHashFunctions) {
         this.length = length;
@@ -12,6 +12,10 @@ public class BloomFilter {
         this.numberOfHashFunctions = numberOfHashFunctions;
     }
 
+    /*addElement() takes a string and splits it in 2 character substrings(ex. word -> wo,or,rd).
+    Then it hashes those substrings numberOfHashFunctions times, each time with a different variation(i.e. +j)
+    and turns the according cells from 0 to 1.
+     */
     public void addElement(String element) {
         for (int i = 0; i < element.length() - 1; i++) {
             for (int j = 0; j < numberOfHashFunctions; j++) {
