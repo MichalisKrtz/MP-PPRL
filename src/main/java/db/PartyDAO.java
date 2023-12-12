@@ -10,12 +10,12 @@ public class PartyDAO {
     }
 
     public void selectFromValues() {
-        String sql = "SELECT * FROM _values_ LIMIT 10";
+        String sql = "SELECT * FROM users LIMIT 10";
         try {
             Statement st = con.createStatement();
             ResultSet rs = st.executeQuery(sql);
             while (rs.next()) {
-                String name = rs.getString("_object_id_");
+                String name = rs.getString("first_name");
                 System.out.println(name);
             }
         } catch (SQLException e) {
