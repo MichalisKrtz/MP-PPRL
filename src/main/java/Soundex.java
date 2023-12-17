@@ -1,6 +1,6 @@
 import java.util.Arrays;
 
-public class SoundexPhoneticEncoder {
+public class Soundex {
     private static final int[] charsToDelete = {'a', 'e', 'h', 'i', 'o', 'u', 'w', 'y'};
     private static final int[] charsEqualToOne = {'b', 'f', 'p', 'v'};
     private static final int[] charsEqualToTwo = {'c', 'g', 'j', 'k', 'q', 's', 'x', 'z'};

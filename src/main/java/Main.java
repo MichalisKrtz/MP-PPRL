@@ -1,6 +1,4 @@
 import db.DynamicTypeValue;
-import db.Party;
-import db.PartyDAO;
 import repositories.PartiesRepository;
 
 import java.util.List;
@@ -14,7 +12,28 @@ public class Main {
         Party p1 = new Party();
         List<Map<String, DynamicTypeValue>> newRecords = PartiesRepository.selectAll(dbPath);
         p1.addRecords(newRecords);
-        p1.printRecords();
+        String[] quasiIdentifiers = new String[2];
+        quasiIdentifiers[0] = "first_name";
+        quasiIdentifiers[1] = "last_name";
+        String[] blockingKeyValues = new String[1];
+        blockingKeyValues[0] = "last_name";
+        Map<String, List<Map<String, DynamicTypeValue>>> p1Records =
+                p1.getEncodedGroupedRecords(quasiIdentifiers,
+                blockingKeyValues,
+                10,
+                2
+        );
+
+        for (Map.Entry<String, List<Map<String, DynamicTypeValue>>> entry : p1Records.entrySet()) {
+            System.out.println(entry.getKey());
+            for (Map<String, DynamicTypeValue> rec : entry.getValue()) {
+                for (String key : rec.keySet()) {
+                    System.out.print(key + ": " + rec.get(key).getValueAsString() + "\t");
+                }
+                System.out.print("\n");
+            }
+        }
+
 
 
 //        String name1 = "Michael";

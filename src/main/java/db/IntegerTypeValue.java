@@ -13,16 +13,7 @@ public class IntegerTypeValue implements DynamicTypeValue {
     }
 
     @Override
-    public String getStringValue() {
+    public String getValueAsString() {
         return String.valueOf(value);
-    }
-
-    @Override
-    public void printValueDescription() {
-        if (value == null) {
-            System.out.println("The value is null");
-            return;
-        }
-        System.out.printf("The value %d is an Integer%n", value);
     }
 }

@@ -2,6 +2,6 @@ package db;
 
 public interface DynamicTypeValue {
     Object getValue();
-    String getStringValue();
-    void printValueDescription();
+    String getValueAsString();
+
 }

@@ -50,4 +50,7 @@ public class BloomFilter {
         }
     }
 
+    public byte[] getCells() {
+        return cells;
+    }
 }

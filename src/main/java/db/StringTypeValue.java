@@ -13,16 +13,7 @@ public class StringTypeValue implements DynamicTypeValue {
     }
 
     @Override
-    public String getStringValue() {
+    public String getValueAsString() {
         return value;
-    }
-
-    @Override
-    public void printValueDescription() {
-        if (value == null) {
-            System.out.println("The value is null");
-            return;
-        }
-        System.out.printf("The value %s is a String%n", value);
     }
 }
