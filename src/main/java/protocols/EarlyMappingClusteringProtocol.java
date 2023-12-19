@@ -1,7 +1,27 @@
 package protocols;
 
-import java.util.ArrayList;
+import other.Party;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public class EarlyMappingClusteringProtocol {
+    private List<Party> parties;
+    private Set<String> unionOfBlocks;
+
+    public EarlyMappingClusteringProtocol(List<Party> parties, Set<String> unionOfBlocks) {
+        this.parties = parties;
+        this.unionOfBlocks = unionOfBlocks;
+    }
+
+//    public List<Map<String, DynamicTypeValue>> run(double similarityThreshold, int minimumSubsetSize) {
+//        int clusterId = 0;
+//
+//    }
+
+
+}
 //public class EarlyMappingClusteringProtocol {
 //    public static ArrayList<ArrayList<M>>() {
 //        //input

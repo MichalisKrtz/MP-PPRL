@@ -1,6 +1,6 @@
 package db;
 
-public interface DynamicTypeValue {
+public interface DynamicValue {
     Object getValue();
     String getValueAsString();
 

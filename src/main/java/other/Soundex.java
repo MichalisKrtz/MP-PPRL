@@ -1,3 +1,5 @@
+package other;
+
 import java.util.Arrays;
 
 public class Soundex {

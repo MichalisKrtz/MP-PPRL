@@ -23,7 +23,7 @@ public class PartyDAO {
         }
     }
 
-    public List<Map<String, DynamicTypeValue>> selectAll() {
+    public List<Record> selectAll() {
         PreparedStatement ps = null;
         ResultSet rs = null;
         String query = "SELECT * FROM users";
@@ -33,24 +33,14 @@ public class PartyDAO {
             rs = ps.executeQuery();
 
             ResultSetMetaData rsmd = rs.getMetaData();
-            List<Map<String , DynamicTypeValue>> records = new ArrayList<>();
+            List<Record> records = new ArrayList<>();
             while (rs.next()) {
-                Map<String, DynamicTypeValue> record = new HashMap<>();
+                Record record = new DynamicRecord();
                 for (int i = 1; i <= rsmd.getColumnCount(); i++) {
                     String key = rsmd.getColumnName(i);
                     String columnType = rsmd.getColumnTypeName(i);
-                    DynamicTypeValue value;
-                    switch (columnType) {
-                        case "TEXT":
-                            value = new StringTypeValue(rs.getString(i));
-                            break;
-                        case "INTEGER":
-                            value = new IntegerTypeValue(rs.getInt(i));
-                            break;
-                        default:
-                            value = null;
-                            System.out.println("THE DATA TYPE OF THIS COLUMN IS NOT SUPPORTED");
-                    }
+                    Object columnValue = rs.getObject(i);
+                    DynamicValue value = DynamicValueFactory.createDynamicValue(columnType, columnValue);
                     if (value != null && key != null) {
                         record.put(key, value);
                     }

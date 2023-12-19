@@ -1,9 +1,9 @@
 package db;
 
-public class StringTypeValue implements DynamicTypeValue {
+public class StringValue implements DynamicValue {
     public String value;
 
-    public StringTypeValue(String value) {
+    public StringValue(String value) {
         this.value = value;
     }
 

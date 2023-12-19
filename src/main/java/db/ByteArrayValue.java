@@ -2,10 +2,10 @@ package db;
 
 import java.util.Arrays;
 
-public class ByteArrayTypeValue implements DynamicTypeValue {
+public class ByteArrayValue implements DynamicValue {
     public byte[] value;
 
-    public ByteArrayTypeValue(byte[] value) {
+    public ByteArrayValue(byte[] value) {
         this.value = value;
     }
 

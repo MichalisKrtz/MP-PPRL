@@ -1,14 +1,17 @@
-import db.ByteArrayTypeValue;
-import db.DynamicTypeValue;
+package other;
+
+import db.*;
+import db.Record;
 
 import java.util.*;
 
 public class Party {
-    private final List<Map<String, DynamicTypeValue>> records;
+    private final List<Record> records;
     private final String[] privateFields;
     private final String[] quasiIdentifiers;
     private final String[] blockingKeyValues;
-    public Party(String[] privateFields ,String[] quasiIdentifiers, String[] blockingKeyValues) {
+
+    public Party(String[] privateFields, String[] quasiIdentifiers, String[] blockingKeyValues) {
         this.privateFields = privateFields.clone();
         this.quasiIdentifiers = quasiIdentifiers.clone();
         this.blockingKeyValues = blockingKeyValues.clone();
@@ -19,45 +22,44 @@ public class Party {
         System.out.println(Arrays.toString(blockingKeyValues));
     }
 
-    public void addRecord(Map<String, DynamicTypeValue> record) {
+    public void addRecord(Record record) {
         records.add(record);
     }
 
-    public void addRecords(List<Map<String, DynamicTypeValue>> records) {
+    public void addRecords(List<Record> records) {
         this.records.addAll(records);
     }
 
-    public Map<String, List<Map<String, DynamicTypeValue>>> shareRecords(int bloomFilterLength, int bloomFilterHashFunctions) {
+    public Map<String, List<Record>> shareRecords(int bloomFilterLength, int bloomFilterHashFunctions) {
         generateBloomFilters(bloomFilterLength, bloomFilterHashFunctions);
-        Map<String, List<Map<String, DynamicTypeValue>>> groupedMaskedRecords = groupRecords();
-//        Map<String, List<Map<String, DynamicTypeValue>>> encodedGroupedRecords = groupedMaskedRecords;
+        Map<String, List<Record>> groupedMaskedRecords = groupRecords();
 
         return removePrivateFieldsFromGroupedRecords(groupedMaskedRecords);
     }
 
     private void generateBloomFilters(int bloomFilterLength, int bloomFilterHashFunctions) {
-        for (Map<String, DynamicTypeValue> rec : records) {
+        for (Record rec : records) {
             StringBuilder sensitiveData = new StringBuilder();
             for (String qId : quasiIdentifiers) {
                 sensitiveData.append(rec.get(qId).getValueAsString());
             }
             BloomFilter bf = new BloomFilter(bloomFilterLength, bloomFilterHashFunctions);
             bf.addElement(sensitiveData.toString());
-            DynamicTypeValue bfCells = new ByteArrayTypeValue(bf.getCells());
-            rec.put("bloomFilter",bfCells);
+            DynamicValue bfCells = DynamicValueFactory.createDynamicValue("BYTE_ARRAY" ,bf.getCells());
+            rec.put("bloomFilter", bfCells);
         }
     }
 
-    private Map<String, List<Map<String, DynamicTypeValue>>> groupRecords() {
-        Map<String, List<Map<String, DynamicTypeValue>>> recordGroups = new HashMap<>();
-        for (Map<String, DynamicTypeValue> rec : records) {
+    private Map<String, List<Record>> groupRecords() {
+        Map<String, List<Record>> recordGroups = new HashMap<>();
+        for (Record rec : records) {
             StringBuilder blockingKeyValuesStringBuilder = new StringBuilder();
             for (String bkv : blockingKeyValues) {
                 blockingKeyValuesStringBuilder.append(rec.get(bkv).getValueAsString());
             }
             String soundex = Soundex.encode(blockingKeyValuesStringBuilder.toString());
             if (!recordGroups.containsKey(soundex)) {
-                List<Map<String, DynamicTypeValue>> group = new ArrayList<>();
+                List<Record> group = new ArrayList<>();
                 group.add(rec);
                 recordGroups.put(soundex, group);
                 continue;
@@ -67,13 +69,13 @@ public class Party {
         return recordGroups;
     }
 
-    private Map<String, List<Map<String, DynamicTypeValue>>> removePrivateFieldsFromGroupedRecords(Map<String, List<Map<String, DynamicTypeValue>>> groupedRecords) {
-        Map<String, List<Map<String, DynamicTypeValue>>> sharableRecordGroups = new HashMap<>();
-        for (Map.Entry<String, List<Map<String, DynamicTypeValue>>> entry : groupedRecords.entrySet()) {
+    private Map<String, List<Record>> removePrivateFieldsFromGroupedRecords(Map<String, List<Record>> groupedRecords) {
+        Map<String, List<Record>> sharableRecordGroups = new HashMap<>();
+        for (Map.Entry<String, List<Record>> entry : groupedRecords.entrySet()) {
             String newSoundex = entry.getKey();
-            List<Map<String, DynamicTypeValue>> newGroup = new ArrayList<>();
-            for (Map<String, DynamicTypeValue> recordsGroup : entry.getValue()) {
-                Map<String, DynamicTypeValue> newRecord = new HashMap<>();
+            List<Record> newGroup = new ArrayList<>();
+            for (Record recordsGroup : entry.getValue()) {
+                Record newRecord = new DynamicRecord();
                 for (String field : recordsGroup.keySet()) {
                     if (!Arrays.asList(privateFields).contains(field)) {
                         newRecord.put(field, recordsGroup.get(field));
@@ -83,11 +85,11 @@ public class Party {
             }
             sharableRecordGroups.put(newSoundex, newGroup);
         }
-        return  sharableRecordGroups;
+        return sharableRecordGroups;
     }
 
     private void printRecords() {
-        for (Map<String, DynamicTypeValue> rec : records) {
+        for (Record rec : records) {
             for (String key : rec.keySet()) {
                 System.out.print(key + ": " + rec.get(key).getValueAsString() + "\t");
             }

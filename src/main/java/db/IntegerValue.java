@@ -1,9 +1,9 @@
 package db;
 
-public class IntegerTypeValue implements DynamicTypeValue {
+public class IntegerValue implements DynamicValue {
     public Integer value;
 
-    public IntegerTypeValue(Integer value) {
+    public IntegerValue(Integer value) {
         this.value = value;
     }
 
