@@ -1,23 +1,38 @@
 package protocols;
 
+import db.Record;
 import other.Party;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class EarlyMappingClusteringProtocol {
-    private List<Party> parties;
-    private Set<String> unionOfBlocks;
+    private final List<Map<String, List<Record>>> sharedRecords;
 
-    public EarlyMappingClusteringProtocol(List<Party> parties, Set<String> unionOfBlocks) {
-        this.parties = parties;
-        this.unionOfBlocks = unionOfBlocks;
+    public EarlyMappingClusteringProtocol(List<Map<String, List<Record>>> sharedRecords) {
+        this.sharedRecords = sharedRecords;
     }
 
-//    public List<Map<String, DynamicTypeValue>> run(double similarityThreshold, int minimumSubsetSize) {
-//        int clusterId = 0;
-//
+    public void run(double similarityThreshold, int minimumSubsetSize) {
+        // Initialization
+        int clusterId = 0;
+        // Order databases
+//        System.out.println(parties.getFirst().getRecordsSize());
+//        sharedRecords.sort(Comparator.comparing(Map<String, List<Record>>::).reversed());
+//        System.out.println(parties.getFirst().getRecordsSize());
+        // Iterate blocks
+
+    }
+
+    private Set<String> unionOfBlocks() {
+        Set<String> blocks = new HashSet<>();
+        for (Map<String, List<Record>> partyRecords : sharedRecords) {
+            blocks.addAll(partyRecords.keySet());
+        }
+        return blocks;
+    }
+
+//    private void orderDatabases() {
+//        sharedRecords.sort(Comparator.comparing(Map<String, List<Record>>::));
 //    }
 
 

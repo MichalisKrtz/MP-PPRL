@@ -2,8 +2,10 @@ package other;
 
 import db.DynamicValue;
 import db.Record;
+import protocols.EarlyMappingClusteringProtocol;
 import repositories.PartiesRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,9 +43,16 @@ public class Application {
         Map<String, List<Record>> partyTwoSharedRecords = partyTwo.shareRecords(BLOOM_FILTER_LENGTH, NUMBER_OF_HASH_FUNCTIONS);
         Map<String, List<Record>> partyThreeSharedRecords = partyThree.shareRecords(BLOOM_FILTER_LENGTH, NUMBER_OF_HASH_FUNCTIONS);
 
-        printPartyRecords(partyOneSharedRecords);
-        printPartyRecords(partyTwoSharedRecords);
-        printPartyRecords(partyThreeSharedRecords);
+//        printPartyRecords(partyOneSharedRecords);
+//        printPartyRecords(partyTwoSharedRecords);
+//        printPartyRecords(partyThreeSharedRecords);
+        List<Map<String, List<Record>>> sharedRecords = new ArrayList<>();
+        sharedRecords.add(partyOneSharedRecords);
+        sharedRecords.add(partyTwoSharedRecords);
+        sharedRecords.add(partyThreeSharedRecords);
+
+        EarlyMappingClusteringProtocol EMap = new EarlyMappingClusteringProtocol(sharedRecords);
+        EMap.run(0.85, 2);
 
         System.out.println("other.Application finished successfully");
     }

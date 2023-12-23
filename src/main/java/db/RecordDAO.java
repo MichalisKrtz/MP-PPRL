@@ -2,15 +2,13 @@ package db;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class PartyDAO {
+public class RecordDAO {
     private final String dbPath;
     private Connection conn = null;
 
-    public PartyDAO(String dbPath) {
+    public RecordDAO(String dbPath) {
         this.dbPath = dbPath;
     }
 

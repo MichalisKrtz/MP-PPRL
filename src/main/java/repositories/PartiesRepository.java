@@ -1,15 +1,13 @@
 package repositories;
 
-import db.DynamicValue;
-import db.PartyDAO;
+import db.RecordDAO;
 import db.Record;
 
 import java.util.List;
-import java.util.Map;
 
 public class PartiesRepository {
     public static List<Record> selectAll(String dbPath) {
-        PartyDAO partyDao = new PartyDAO(dbPath);
+        RecordDAO partyDao = new RecordDAO(dbPath);
         return partyDao.selectAll();
     }
 }
