@@ -1,7 +1,8 @@
 package protocols;
 
 import db.Record;
-import other.Party;
+import other.HungarianAlgorithm;
+import other.SimilarityCalculator;
 
 import java.util.*;
 
@@ -15,11 +16,37 @@ public class EarlyMappingClusteringProtocol {
     public void run(double similarityThreshold, int minimumSubsetSize) {
         // Initialization
         int clusterId = 0;
+        WeightedGraph graph = new WeightedGraph();
+        WeightedGraph finalGraph = new WeightedGraph();
         // Order databases
-//        System.out.println(parties.getFirst().getRecordsSize());
-//        sharedRecords.sort(Comparator.comparing(Map<String, List<Record>>::).reversed());
-//        System.out.println(parties.getFirst().getRecordsSize());
+        orderDatabasesDesc();
         // Iterate blocks
+        for (String blockKey : unionOfBlocks()) {
+            WeightedGraph blockGraph = new WeightedGraph();
+            for (Map<String, List<Record>> partyRecords : sharedRecords) {
+                if (!partyRecords.containsKey(blockKey)) {
+                    continue;
+                }
+                if (blockGraph.getVertices().isEmpty()) {
+                    for (Record rec : partyRecords.get(blockKey)) {
+                        clusterId++;
+                        Vertex v = new Vertex(rec);
+                        blockGraph.addVertex(v);
+                    }
+                }
+                if (!blockGraph.getVertices().isEmpty()) {
+                    for (Record rec : partyRecords.get(blockKey)) {
+                        for (Vertex v : blockGraph.getVertices()) {
+                            double similarity = SimilarityCalculator.calculateAverageSimilarity(v, rec);
+                            if (similarity > similarityThreshold) {
+                                blockGraph.addEdge(v, rec);
+                            }
+                        }
+                    }
+                    Set<Edge> optimalEdges = HungarianAlgorithm.findOptimalEdges(blockGraph.getEdges());
+                }
+            }
+        }
 
     }
 
@@ -31,58 +58,22 @@ public class EarlyMappingClusteringProtocol {
         return blocks;
     }
 
-//    private void orderDatabases() {
-//        sharedRecords.sort(Comparator.comparing(Map<String, List<Record>>::));
-//    }
+    private void orderDatabasesDesc() {
+        Comparator<Map<String, List<Record>>> comp = new Comparator<Map<String, List<Record>>>() {
+            @Override
+            public int compare(Map<String, List<Record>> db1, Map<String, List<Record>> db2) {
+                int db1NumberOfRecords = 0;
+                int db2NumberOfRecords = 0;
+                for (List<Record> group : db1.values()) {
+                    db1NumberOfRecords += group.size();
+                }
+                for (List<Record> group : db2.values()) {
+                    db2NumberOfRecords += group.size();
+                }
+                return db1NumberOfRecords - db2NumberOfRecords;
+            }
+        };
 
-
+        sharedRecords.sort(comp.reversed());
+    }
 }
-//public class EarlyMappingClusteringProtocol {
-//    public static ArrayList<ArrayList<M>>() {
-//        //input
-//        int minimumSubsetSize = 2;
-//        double similarityThreshold = 0.85;
-//
-//        int clusterId = 0;
-//        Graph G = {};
-//        MatchingSets M = {};
-//        for (Block B : blocks) {
-//            Graph Gb = {};
-//            for (int i; i < numberOfParties; i++) {
-//                if (i == 1) {
-//                    for (Record rec : databases[i]) {
-//                        clusterId++;
-//                        Gb[clusterId] = rec;
-//                    }
-//                    continue;
-//                }
-//                for (Record rec : databases[i]) {
-//                    for (Vertice c : Gb) {
-//                        double sim_val = sim(rec, c);
-//                        if (sim_val >= similarityThreshold) {
-//                            Gb.add_edge(c, rec);
-//                        }
-//                    }
-//                }
-//                optimalEdges = map(Gb.E);
-//                for (Edge e : Gb.E) {
-//                    if (!optimalEdges.contains(e)) {
-//                        Gb.remove(e);
-//                    }
-//                }
-//                for (Edge e : Gb.E) {
-//                    Gb.merge(get_vertices(e));
-//                }
-//            }
-//            G.add(Gb);
-//        }
-//
-//
-//        for (Cluster c : G) {
-//            if (c.size() >= minimumSubsetSize) {
-//                M.add(c);
-//            }
-//        }
-//        return M;
-//    }
-//}

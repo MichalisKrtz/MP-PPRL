@@ -1,6 +1,5 @@
 package other;
 
-import db.DynamicValue;
 import db.Record;
 import protocols.EarlyMappingClusteringProtocol;
 import repositories.PartiesRepository;
@@ -10,15 +9,15 @@ import java.util.List;
 import java.util.Map;
 
 public class Application {
-    public static final int BLOOM_FILTER_LENGTH = 5;
+    public static final int BLOOM_FILTER_LENGTH = 1000;
     public static final int NUMBER_OF_HASH_FUNCTIONS = 1;
 
     public static void run() {
         System.out.println("other.Application running...");
 
-        String db_one_path = "C:\\Users\\Michael\\Desktop\\Thesis\\Dev\\dataset_one.db";
-        String db_two_path = "C:\\Users\\Michael\\Desktop\\Thesis\\Dev\\dataset_two.db";
-        String db_three_path = "C:\\Users\\Michael\\Desktop\\Thesis\\Dev\\dataset_three.db";
+        String db_one_path = "C:\\Dev\\Thesis\\dataset_one.db";
+        String db_two_path = "C:\\Dev\\Thesis\\dataset_two.db";
+        String db_three_path = "C:\\Dev\\Thesis\\dataset_three.db";
 
         String[] privateFields = {"first_name", "last_name"};
         String[] quasiIdentifiers = {"first_name", "last_name"};
@@ -43,18 +42,16 @@ public class Application {
         Map<String, List<Record>> partyTwoSharedRecords = partyTwo.shareRecords(BLOOM_FILTER_LENGTH, NUMBER_OF_HASH_FUNCTIONS);
         Map<String, List<Record>> partyThreeSharedRecords = partyThree.shareRecords(BLOOM_FILTER_LENGTH, NUMBER_OF_HASH_FUNCTIONS);
 
-//        printPartyRecords(partyOneSharedRecords);
-//        printPartyRecords(partyTwoSharedRecords);
-//        printPartyRecords(partyThreeSharedRecords);
         List<Map<String, List<Record>>> sharedRecords = new ArrayList<>();
         sharedRecords.add(partyOneSharedRecords);
         sharedRecords.add(partyTwoSharedRecords);
         sharedRecords.add(partyThreeSharedRecords);
 
+        System.out.println("Early mapping clustering protocol...");
         EarlyMappingClusteringProtocol EMap = new EarlyMappingClusteringProtocol(sharedRecords);
         EMap.run(0.85, 2);
 
-        System.out.println("other.Application finished successfully");
+        System.out.println("Application finished successfully");
     }
 
     public static void printPartyRecords(Map<String, List<Record>> partyRecords) {

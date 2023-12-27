@@ -18,13 +18,14 @@ public class RecordDAO {
             conn = DriverManager.getConnection(url + dbPath);
         } catch (SQLException e) {
             System.out.println("FAILED TO CONNECT TO THE DATABASE");
+            throw new RuntimeException(e);
         }
     }
 
     public List<Record> selectAll() {
         PreparedStatement ps = null;
         ResultSet rs = null;
-        String query = "SELECT * FROM users";
+        String query = "SELECT * FROM users LIMIT 1000";
         try {
             connect();
             ps = conn.prepareStatement(query);

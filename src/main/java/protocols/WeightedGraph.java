@@ -1,5 +1,7 @@
 package protocols;
 
+import db.Record;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,8 +18,8 @@ public class WeightedGraph {
         vertices.add(v);
     }
 
-    public void addEdge(Edge e) {
-        edges.add(e);
+    public void addEdge(Vertex v, Record r) {
+        edges.add(new Edge(v, r));
     }
 
     public Set<Vertex> getVertices() {
