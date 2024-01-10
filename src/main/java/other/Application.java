@@ -15,9 +15,9 @@ public class Application {
     public static void run() {
         System.out.println("other.Application running...");
 
-        String db_one_path = "C:\\Dev\\Thesis\\dataset_one.db";
-        String db_two_path = "C:\\Dev\\Thesis\\dataset_two.db";
-        String db_three_path = "C:\\Dev\\Thesis\\dataset_three.db";
+        String db_one_path = "C:\\Users\\Michael\\Desktop\\Thesis\\Dev\\dataset_one.db";
+        String db_two_path = "C:\\Users\\Michael\\Desktop\\Thesis\\Dev\\dataset_two.db";
+        String db_three_path = "C:\\Users\\Michael\\Desktop\\Thesis\\Dev\\dataset_three.db";
 
         String[] privateFields = {"first_name", "last_name"};
         String[] quasiIdentifiers = {"first_name", "last_name"};

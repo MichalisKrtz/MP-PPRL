@@ -10,7 +10,7 @@ public class SimilarityCalculator {
 
             sumSimilarity += calculateSimilarity(clusterRecord, record);
         }
-//        System.out.println("sumSim: " + sumSimilarity + " size:" + v1.records().size() + " = " + sumSimilarity / v1.records().size());
+
         return sumSimilarity / v1.records().size();
     }
 

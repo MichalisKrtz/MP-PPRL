@@ -25,7 +25,7 @@ public class RecordDAO {
     public List<Record> selectAll() {
         PreparedStatement ps = null;
         ResultSet rs = null;
-        String query = "SELECT * FROM users LIMIT 1000";
+        String query = "SELECT * FROM users LIMIT 200";
         try {
             connect();
             ps = conn.prepareStatement(query);
