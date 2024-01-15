@@ -1,7 +1,11 @@
-package other;
+package mp_pprl.protocols;
 
-import db.*;
-import db.Record;
+import mp_pprl.db.Record;
+import mp_pprl.db.DynamicRecord;
+import mp_pprl.db.DynamicValue;
+import mp_pprl.db.DynamicValueFactory;
+import mp_pprl.encoding.BloomFilter;
+import mp_pprl.encoding.Soundex;
 
 import java.util.*;
 
@@ -16,14 +20,6 @@ public class Party {
         this.quasiIdentifiers = quasiIdentifiers.clone();
         this.blockingKeyValues = blockingKeyValues.clone();
         records = new ArrayList<>();
-    }
-
-    public void printBKV() {
-        System.out.println(Arrays.toString(blockingKeyValues));
-    }
-
-    public void addRecord(Record record) {
-        records.add(record);
     }
 
     public void addRecords(List<Record> records) {
@@ -45,19 +41,19 @@ public class Party {
             }
             BloomFilter bf = new BloomFilter(bloomFilterLength, bloomFilterHashFunctions);
             bf.addElement(sensitiveData.toString());
-            DynamicValue bfCells = DynamicValueFactory.createDynamicValue("BYTE_ARRAY" ,bf.getCells());
-            rec.put("bloomFilter", bfCells);
+            DynamicValue bfCells = DynamicValueFactory.createDynamicValue("BYTE_ARRAY", bf.getCells());
+            rec.put("bloom_filter", bfCells);
         }
     }
 
     private Map<String, List<Record>> groupRecords() {
         Map<String, List<Record>> recordGroups = new HashMap<>();
         for (Record rec : records) {
-            StringBuilder blockingKeyValuesStringBuilder = new StringBuilder();
+            StringBuilder soundexStringBuilder = new StringBuilder();
             for (String bkv : blockingKeyValues) {
-                blockingKeyValuesStringBuilder.append(rec.get(bkv).getValueAsString());
+                soundexStringBuilder.append(Soundex.encode(rec.get(bkv).getValueAsString()));
             }
-            String soundex = Soundex.encode(blockingKeyValuesStringBuilder.toString());
+            String soundex = soundexStringBuilder.toString();
             if (!recordGroups.containsKey(soundex)) {
                 List<Record> group = new ArrayList<>();
                 group.add(rec);
@@ -86,14 +82,5 @@ public class Party {
             sharableRecordGroups.put(newSoundex, newGroup);
         }
         return sharableRecordGroups;
-    }
-
-    private void printRecords() {
-        for (Record rec : records) {
-            for (String key : rec.keySet()) {
-                System.out.print(key + ": " + rec.get(key).getValueAsString() + "\t");
-            }
-            System.out.print("\n");
-        }
     }
 }

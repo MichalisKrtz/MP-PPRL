@@ -1,4 +1,4 @@
-package db;
+package mp_pprl.db;
 
 
 public class DynamicValueFactory {
@@ -8,6 +8,7 @@ public class DynamicValueFactory {
         BYTE_ARRAY("BYTE_ARRAY");
 
         final String type;
+
         DynamicValueType(String type) {
             this.type = type;
         }

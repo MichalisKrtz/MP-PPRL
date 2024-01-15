@@ -1,4 +1,4 @@
-package other;
+package mp_pprl.encoding;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

@@ -1,60 +1,43 @@
-package other;
+package mp_pprl.optimization;
 
-import db.Record;
-import protocols.ArrayIndex2D;
-import protocols.Edge;
-import protocols.Vertex;
+import mp_pprl.graph.ArrayIndex2D;
+import mp_pprl.graph.Edge;
+import mp_pprl.graph.Vertex;
+import mp_pprl.protocols.SimilarityCalculator;
+import mp_pprl.db.Record;
 
 import java.util.*;
 
 public class HungarianAlgorithm {
     // This method uses the Hungarian algorithm to select the optimal edges based on their similarity.
     public static Set<Edge> findOptimalEdges(Set<Edge> edges) {
-        List<Vertex> uniqueVertices = new ArrayList<>();
-        List<Record> uniqueRecords = new ArrayList<>();
+        List<Vertex> uniqueVertices = getUniqueVerticesFromEdges(edges);
+        List<Record> uniqueRecords = getUniqueRecordsFromEdges(edges);
 
-        for (Edge e : edges) {
-            if (!uniqueVertices.contains(e.vertex())) {
-                uniqueVertices.add(e.vertex());
-            }
-            if (!uniqueRecords.contains(e.record())) {
-                uniqueRecords.add(e.record());
-            }
-        }
-
-        // Similarity matrix dimensions
         int n = findSimilarityMatrixSize(uniqueVertices, uniqueRecords);
+
         if (n == 0) {
             return new HashSet<>();
         }
-        // Initialize similarityMatrix and keep a copy of its original state
-        double[][] similarityMatrix = initializeSimilarityMatrix(n, edges, uniqueVertices, uniqueRecords);
-        System.out.println("Initialization: " + Arrays.deepToString(similarityMatrix));
 
+        double[][] similarityMatrix = initializeSimilarityMatrix(n, edges, uniqueVertices, uniqueRecords);
 
         double[][] modifiedSimilarityMatrix = convertToMinimizationProblem(similarityMatrix);
-        System.out.println("Maximization to minimization conversion: " + Arrays.deepToString(similarityMatrix));
 
         modifiedSimilarityMatrix = reduceRows(modifiedSimilarityMatrix);
-        System.out.println("Row reduction: " + Arrays.deepToString(modifiedSimilarityMatrix));
 
         modifiedSimilarityMatrix = reduceColumns(modifiedSimilarityMatrix);
-        System.out.println("Column reduction: " + Arrays.deepToString(modifiedSimilarityMatrix));
 
-        List<Integer> crossedRows = new ArrayList<>();
-        List<Integer> crossedCols = new ArrayList<>();
+        // The two lists are populated inside the checkForOptimalAssignment() method.
+        Set<Integer> crossedRows = new HashSet<>();
+        Set<Integer> crossedCols = new HashSet<>();
         while (!checkForOptimalAssignment(modifiedSimilarityMatrix, crossedRows, crossedCols)) {
-            System.out.println("Shifting zeros-----------------------------------------------");
             modifiedSimilarityMatrix = shiftZeros(modifiedSimilarityMatrix, crossedRows, crossedCols);
             crossedRows.clear();
             crossedCols.clear();
         }
 
         List<ArrayIndex2D> indices = chooseFinalAssignments(modifiedSimilarityMatrix);
-        System.out.println("Indices");
-        for (ArrayIndex2D index : indices) {
-            System.out.println("[" + index.row() + ", " + index.col() + "]");
-        }
 
         return getEdgesFromFinalAssignments(indices, uniqueVertices, uniqueRecords);
     }
@@ -66,29 +49,23 @@ public class HungarianAlgorithm {
             for (int i = uniqueRecords.size(); i < uniqueVertices.size(); i++) {
                 dummyColumns.add(i);
             }
-            System.out.println("Dummy Columns: " + dummyColumns);
         } else if (uniqueVertices.size() < uniqueRecords.size()) {
             for (int i = uniqueVertices.size(); i < uniqueRecords.size(); i++) {
                 dummyRows.add(i);
             }
-            System.out.println("Dummy Rows" + dummyRows);
         }
 
         Set<Edge> optimalEdges = new HashSet<>();
         for (ArrayIndex2D index : indices) {
-            if(dummyRows.contains(index.row())) {
+            if (dummyRows.contains(index.row())) {
                 continue;
             }
-            if(dummyColumns.contains(index.col())) {
+            if (dummyColumns.contains(index.col())) {
                 continue;
             }
             optimalEdges.add(new Edge(uniqueVertices.get(index.row()), uniqueRecords.get(index.col())));
         }
 
-        System.out.println("Optimal Edges: ");
-        for (Edge edge : optimalEdges) {
-            System.out.println("Vertex: " + edge.vertex() + ", Record: " + edge.record());
-        }
         return optimalEdges;
     }
 
@@ -99,15 +76,14 @@ public class HungarianAlgorithm {
     private static List<ArrayIndex2D> chooseFinalAssignments(double[][] squareMatrix) {
         List<ArrayIndex2D> indices = new ArrayList<>();
 
-        List<Integer> availableRows = new ArrayList<>();
-        List<Integer> availableCols = new ArrayList<>();
+        Set<Integer> availableRows = new HashSet<>();
+        Set<Integer> availableCols = new HashSet<>();
         for (int i = 0; i < squareMatrix.length; i++) {
             availableRows.add(i);
             availableCols.add(i);
         }
         while (!availableRows.isEmpty()) {
             Map<Integer, Integer> rowZeroesMap = new HashMap<>();
-            System.out.println(availableRows);
             for (int i = 0; i < squareMatrix.length; i++) {
                 if (!availableRows.contains(i)) {
                     continue;
@@ -117,21 +93,20 @@ public class HungarianAlgorithm {
                     if (!availableCols.contains(j)) {
                         continue;
                     }
-                    if (squareMatrix[i][j] == 0) {
-                        zeroesCount++;
+                    if (squareMatrix[i][j] != 0) {
+                        continue;
                     }
+                    zeroesCount++;
                 }
                 rowZeroesMap.put(i, zeroesCount);
             }
-            System.out.println(rowZeroesMap);
 
             int leastZeroesRow = Collections.min(rowZeroesMap.entrySet(), Map.Entry.comparingByValue()).getKey();
-            System.out.println("least: " + leastZeroesRow);
             for (int j = 0; j < squareMatrix.length; j++) {
-                if(squareMatrix[leastZeroesRow][j] == 0 && availableCols.contains(j)) {
+                if (squareMatrix[leastZeroesRow][j] == 0 && availableCols.contains(j)) {
                     indices.add(new ArrayIndex2D(leastZeroesRow, j));
-                    availableRows.remove(Integer.valueOf(leastZeroesRow));
-                    availableCols.remove(Integer.valueOf(j));
+                    availableRows.remove(leastZeroesRow);
+                    availableCols.remove(j);
                     break;
                 }
             }
@@ -140,7 +115,7 @@ public class HungarianAlgorithm {
         return indices;
     }
 
-    private static double[][] shiftZeros(double[][] squareMatrix, List<Integer> crossedRows, List<Integer> crossedCols) {
+    private static double[][] shiftZeros(double[][] squareMatrix, Set<Integer> crossedRows, Set<Integer> crossedCols) {
         double minNumber = getMinUncrossedNumber(squareMatrix, crossedRows, crossedCols);
         double[][] modifiedMatrix = new double[squareMatrix.length][squareMatrix.length];
         for (int i = 0; i < squareMatrix.length; i++) {
@@ -158,8 +133,8 @@ public class HungarianAlgorithm {
         return modifiedMatrix;
     }
 
-    private static double getMinUncrossedNumber(double[][] squareMatrix, List<Integer> crossedRows, List<Integer> crossedCols) {
-        double minNumber = -1.0;
+    private static double getMinUncrossedNumber(double[][] squareMatrix, Set<Integer> crossedRows, Set<Integer> crossedCols) {
+        double minNumber = 1;
         for (int i = 0; i < squareMatrix.length; i++) {
             if (crossedRows.contains(i)) {
                 continue;
@@ -168,61 +143,64 @@ public class HungarianAlgorithm {
                 if (crossedCols.contains(j)) {
                     continue;
                 }
-                if (minNumber < squareMatrix[i][j]) {
+                if (minNumber > squareMatrix[i][j]) {
                     minNumber = squareMatrix[i][j];
                 }
             }
         }
+        System.out.println("Minimum uncrossed number: " + minNumber);
         return minNumber;
     }
 
-    // The lists crossedRows and crossedCols are modified in order to be used in the shiftZeros method.
-    private static boolean checkForOptimalAssignment(double[][] squareMatrix, List<Integer> crossedRows, List<Integer> crossedCols) {
+    //  The lists crossedRows and crossedCols are modified in order to be used in the shiftZeros method.
+    private static boolean checkForOptimalAssignment(double[][] squareMatrix, Set<Integer> crossedRows, Set<Integer> crossedCols) {
         int minLines = 0;
         Map<Integer, Integer> rowZerosMap = new HashMap<>();
         Map<Integer, Integer> colZerosMap = new HashMap<>();
-
         while (true) {
             for (int i = 0; i < squareMatrix.length; i++) {
                 rowZerosMap.put(i, 0);
                 colZerosMap.put(i, 0);
+            }
+            for (int i = 0; i < squareMatrix.length; i++) {
                 for (int j = 0; j < squareMatrix.length; j++) {
                     if (squareMatrix[i][j] == 0 && !crossedRows.contains(i) && !crossedCols.contains(j)) {
                         rowZerosMap.put(i, rowZerosMap.get(i) + 1);
-                    }
-                    if (squareMatrix[j][i] == 0 && !crossedRows.contains(j) && !crossedCols.contains(i)) {
-                        colZerosMap.put(i, colZerosMap.get(i) + 1);
+                        colZerosMap.put(j, colZerosMap.get(j) + 1);
                     }
                 }
             }
-            System.out.println(rowZerosMap);
-            System.out.println(colZerosMap);
-
             int mostZerosRow = Collections.max(rowZerosMap.entrySet(), Map.Entry.comparingByValue()).getKey();
             int mostZerosCol = Collections.max(colZerosMap.entrySet(), Map.Entry.comparingByValue()).getKey();
+            //  Check if both the row and column with most zeros have 0 zeros, which means all zeros have been crossed.
             if (rowZerosMap.get(mostZerosRow) == 0 && colZerosMap.get(mostZerosCol) == 0) {
-                System.out.println("End of loop.");
                 break;
             }
-            if (rowZerosMap.get(mostZerosRow) >= colZerosMap.get(mostZerosCol)) {
+            if (rowZerosMap.get(mostZerosRow) > colZerosMap.get(mostZerosCol)) {
                 crossedRows.add(mostZerosRow);
-            } else {
+            } else if (rowZerosMap.get(mostZerosRow) < colZerosMap.get(mostZerosCol)) {
                 crossedCols.add(mostZerosCol);
+            } else {
+                int mostZerosRowsCount = 0;
+                int mostZerosColsCount = 0;
+                for (Integer value : rowZerosMap.values()) {
+                    if (value == 0) {
+                        mostZerosRowsCount++;
+                    }
+                }
+                for (Integer value : colZerosMap.values()) {
+                    if (value == 0) {
+                        mostZerosColsCount++;
+                    }
+                }
+                if (mostZerosRowsCount >= mostZerosColsCount) {
+                    crossedRows.add(mostZerosRow);
+                } else {
+                    crossedCols.add(mostZerosCol);
+                }
             }
             minLines++;
-
-            System.out.println("mostZerosRow: " + mostZerosRow);
-            System.out.println("mostZerosCol: " + mostZerosCol);
-            System.out.println("crossedRows: " + crossedRows);
-            System.out.println("crossedCol: " + crossedCols);
         }
-
-        if (minLines < squareMatrix.length) {
-            System.out.println("min Lines are less thant the matrix length.");
-            Scanner sc = new Scanner(System.in);
-            int i = sc.nextInt();
-        }
-//        System.out.println(minLines);
 
         return minLines == squareMatrix.length;
     }
@@ -285,8 +263,6 @@ public class HungarianAlgorithm {
         for (int i = 0; i < uniqueVertices.size(); i++) {
             for (int j = 0; j < uniqueRecords.size(); j++) {
                 if (edges.contains(new Edge(uniqueVertices.get(i), uniqueRecords.get(j)))) {
-                    System.out.println(uniqueVertices.get(i).records());
-                    System.out.println(uniqueRecords.get(j));
                     similarityMatrix[i][j] = SimilarityCalculator.calculateAverageSimilarity(uniqueVertices.get(i), uniqueRecords.get(j));
                 }
             }
@@ -296,7 +272,28 @@ public class HungarianAlgorithm {
     }
 
     private static int findSimilarityMatrixSize(List<Vertex> vertices, List<Record> records) {
-        // Vertices will probably always be more than the records
         return Math.max(vertices.size(), records.size());
+    }
+
+    private static List<Vertex> getUniqueVerticesFromEdges(Set<Edge> edges) {
+        List<Vertex> uniqueVertices = new ArrayList<>();
+        for (Edge e : edges) {
+            if (!uniqueVertices.contains(e.vertex())) {
+                uniqueVertices.add(e.vertex());
+            }
+        }
+
+        return uniqueVertices;
+    }
+
+    private static List<Record> getUniqueRecordsFromEdges(Set<Edge> edges) {
+        List<Record> uniqueRecords = new ArrayList<>();
+        for (Edge e : edges) {
+            if (!uniqueRecords.contains(e.record())) {
+                uniqueRecords.add(e.record());
+            }
+        }
+
+        return uniqueRecords;
     }
 }

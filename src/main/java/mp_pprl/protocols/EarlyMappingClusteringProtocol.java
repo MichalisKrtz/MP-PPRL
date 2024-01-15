@@ -1,8 +1,10 @@
-package protocols;
+package mp_pprl.protocols;
 
-import db.Record;
-import other.HungarianAlgorithm;
-import other.SimilarityCalculator;
+import mp_pprl.graph.Edge;
+import mp_pprl.graph.Vertex;
+import mp_pprl.graph.WeightedGraph;
+import mp_pprl.db.Record;
+import mp_pprl.optimization.HungarianAlgorithm;
 
 import java.util.*;
 
@@ -13,44 +15,63 @@ public class EarlyMappingClusteringProtocol {
         this.sharedRecords = sharedRecords;
     }
 
-    public void run(double similarityThreshold, int minimumSubsetSize) {
+    public Set<Vertex> generateClusters(double similarityThreshold, int minimumSubsetSize) {
         // Initialization
-        int clusterId = 0;
         WeightedGraph graph = new WeightedGraph();
-        WeightedGraph finalGraph = new WeightedGraph();
+        Set<Vertex> finalClusters = new HashSet<>();
         // Order databases
         orderDatabasesDesc();
         // Iterate blocks
-        for (String blockKey : unionOfBlocks()) {
+        for (String blockKey : getUnionOfBlocks()) {
             WeightedGraph blockGraph = new WeightedGraph();
             for (Map<String, List<Record>> partyRecords : sharedRecords) {
                 if (!partyRecords.containsKey(blockKey)) {
                     continue;
                 }
+
                 if (blockGraph.getVertices().isEmpty()) {
                     for (Record rec : partyRecords.get(blockKey)) {
-                        clusterId++;
                         Vertex v = new Vertex(rec);
                         blockGraph.addVertex(v);
                     }
+                    continue;
                 }
-                if (!blockGraph.getVertices().isEmpty()) {
-                    for (Record rec : partyRecords.get(blockKey)) {
-                        for (Vertex v : blockGraph.getVertices()) {
-                            double similarity = SimilarityCalculator.calculateAverageSimilarity(v, rec);
-                            if (similarity > similarityThreshold) {
-                                blockGraph.addEdge(v, rec);
-                            }
+
+                for (Record rec : partyRecords.get(blockKey)) {
+                    for (Vertex cluster : blockGraph.getVertices()) {
+                        double similarity = SimilarityCalculator.calculateAverageSimilarity(cluster, rec);
+                        if (similarity > similarityThreshold) {
+                            blockGraph.addEdge(cluster, rec);
                         }
                     }
-                    Set<Edge> optimalEdges = HungarianAlgorithm.findOptimalEdges(blockGraph.getEdges());
                 }
+                Set<Edge> optimalEdges = HungarianAlgorithm.findOptimalEdges(blockGraph.getEdges());
+
+                //  Use a copy of the blocks edges to avoid ConcurrentModificationException when removing the edge.
+                Set<Edge> blockGraphEdges = new HashSet<>(blockGraph.getEdges());
+                for (Edge e : blockGraphEdges) {
+                    if (!optimalEdges.contains(e)) {
+                        blockGraph.removeEdge(e);
+                    }
+                }
+
+                for (Edge e : blockGraph.getEdges()) {
+                    blockGraph.mergeClusterVertices(e);
+                }
+            }
+            graph.addVertices(blockGraph.getVertices());
+        }
+
+        for (Vertex cluster : graph.getVertices()) {
+            if (cluster.records().size() >= minimumSubsetSize) {
+                finalClusters.add(cluster);
             }
         }
 
+        return finalClusters;
     }
 
-    private Set<String> unionOfBlocks() {
+    private Set<String> getUnionOfBlocks() {
         Set<String> blocks = new HashSet<>();
         for (Map<String, List<Record>> partyRecords : sharedRecords) {
             blocks.addAll(partyRecords.keySet());

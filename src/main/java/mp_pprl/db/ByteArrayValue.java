@@ -1,4 +1,4 @@
-package db;
+package mp_pprl.db;
 
 import java.util.Arrays;
 

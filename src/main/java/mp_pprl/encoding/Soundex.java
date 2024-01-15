@@ -1,4 +1,4 @@
-package other;
+package mp_pprl.encoding;
 
 import java.util.Arrays;
 
@@ -11,10 +11,9 @@ public class Soundex {
     private static final int[] charsEqualToFive = {'m', 'n'};
     private static final int charEqualToSix = 'r';
 
-
     public static String encode(String name) {
         StringBuilder encodedName = new StringBuilder();
-        encodedName.append(name.charAt(0));
+        encodedName.append(Character.toUpperCase(name.charAt(0)));
         for (int i = 1; i < name.length(); i++) {
             int character = Character.toLowerCase(name.charAt(i));
 

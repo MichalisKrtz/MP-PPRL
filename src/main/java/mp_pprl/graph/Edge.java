@@ -1,6 +1,6 @@
-package protocols;
+package mp_pprl.graph;
 
-import db.Record;
+import mp_pprl.db.Record;
 
 import java.util.Objects;
 

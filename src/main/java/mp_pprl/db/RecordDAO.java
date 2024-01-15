@@ -1,4 +1,4 @@
-package db;
+package mp_pprl.db;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public class RecordDAO {
     public List<Record> selectAll() {
         PreparedStatement ps = null;
         ResultSet rs = null;
-        String query = "SELECT * FROM users LIMIT 200";
+        String query = "SELECT * FROM users";
         try {
             connect();
             ps = conn.prepareStatement(query);
@@ -51,13 +51,25 @@ public class RecordDAO {
             throw new RuntimeException(e);
         } finally {
             if (rs != null) {
-                try { rs.close(); } catch (SQLException e) { System.out.println("FAILED TO CLOSE RESULT SET"); }
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    System.out.println("FAILED TO CLOSE RESULT SET");
+                }
             }
             if (ps != null) {
-                try { ps.close(); } catch (SQLException e) { System.out.println("FAILED TO CLOSE PREPARED STATEMENT"); }
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    System.out.println("FAILED TO CLOSE PREPARED STATEMENT");
+                }
             }
             if (conn != null) {
-                try { conn.close(); } catch (SQLException e) { System.out.println("FAILED TO CLOSE DATABASE CONNECTION"); }
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    System.out.println("FAILED TO CLOSE DATABASE CONNECTION");
+                }
             }
         }
 

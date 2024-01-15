@@ -1,7 +1,7 @@
-package other;
+package mp_pprl.protocols;
 
-import db.Record;
-import protocols.Vertex;
+import mp_pprl.graph.Vertex;
+import mp_pprl.db.Record;
 
 public class SimilarityCalculator {
     public static double calculateAverageSimilarity(Vertex v1, Record record) {
@@ -15,8 +15,8 @@ public class SimilarityCalculator {
     }
 
     private static double calculateSimilarity(Record r1, Record r2) {
-        byte[] bf1 = (byte[])r1.get("bloomFilter").getValue();
-        byte[] bf2 = (byte[])r2.get("bloomFilter").getValue();
+        byte[] bf1 = (byte[]) r1.get("bloom_filter").getValue();
+        byte[] bf2 = (byte[]) r2.get("bloom_filter").getValue();
         int[] cbf = new int[bf1.length];
         for (int i = 0; i < cbf.length; i++) {
             cbf[i] = bf1[i] + bf2[i];

@@ -1,4 +1,4 @@
-package db;
+package mp_pprl.db;
 
 public class StringValue implements DynamicValue {
     public String value;

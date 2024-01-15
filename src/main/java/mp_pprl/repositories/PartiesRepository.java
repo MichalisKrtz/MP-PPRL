@@ -1,7 +1,7 @@
-package repositories;
+package mp_pprl.repositories;
 
-import db.RecordDAO;
-import db.Record;
+import mp_pprl.db.RecordDAO;
+import mp_pprl.db.Record;
 
 import java.util.List;
 
