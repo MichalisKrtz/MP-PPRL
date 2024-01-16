@@ -24,6 +24,7 @@ public class Application {
         final int numberOfHashFunctions = 30;
         final int minimumSubsetSize = 3;
         final double similarityThreshold = 0.85;
+
         final String[] privateFields = {"first_name", "last_name"};
         final String[] quasiIdentifiers = {"first_name", "last_name"};
         final String[] blockingKeyValues = {"first_name", "last_name"};
