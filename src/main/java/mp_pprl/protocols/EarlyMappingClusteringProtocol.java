@@ -92,19 +92,16 @@ public class EarlyMappingClusteringProtocol {
     }
 
     private void orderDatabasesDesc() {
-        Comparator<Map<String, List<Record>>> comp = new Comparator<Map<String, List<Record>>>() {
-            @Override
-            public int compare(Map<String, List<Record>> db1, Map<String, List<Record>> db2) {
-                int db1NumberOfRecords = 0;
-                int db2NumberOfRecords = 0;
-                for (List<Record> group : db1.values()) {
-                    db1NumberOfRecords += group.size();
-                }
-                for (List<Record> group : db2.values()) {
-                    db2NumberOfRecords += group.size();
-                }
-                return db1NumberOfRecords - db2NumberOfRecords;
+        Comparator<Map<String, List<Record>>> comp = (db1, db2) -> {
+            int db1NumberOfRecords = 0;
+            int db2NumberOfRecords = 0;
+            for (List<Record> group : db1.values()) {
+                db1NumberOfRecords += group.size();
             }
+            for (List<Record> group : db2.values()) {
+                db2NumberOfRecords += group.size();
+            }
+            return db1NumberOfRecords - db2NumberOfRecords;
         };
 
         sharedRecords.sort(comp.reversed());

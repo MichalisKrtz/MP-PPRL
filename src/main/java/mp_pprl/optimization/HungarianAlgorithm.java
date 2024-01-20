@@ -43,6 +43,7 @@ public class HungarianAlgorithm {
         return getEdgesFromFinalAssignments(indices, uniqueVertices, uniqueRecords);
     }
 
+    // --- Only for debugging ---
     private static void printMatrix(double[][] modifiedSimilarityMatrix) {
         System.out.println("{");
         for (double[] similarityMatrix : modifiedSimilarityMatrix) {
@@ -219,7 +220,7 @@ public class HungarianAlgorithm {
     private static int getMaxGainWithMostZerosCol(int maxGainCol, Map<Integer, Integer> colGainsMap, Map<Integer, Integer> colZerosCountMap) {
         int maxGainWithMostZerosCol = maxGainCol;
         for (Map.Entry<Integer, Integer> colGainsEntry : colGainsMap.entrySet()) {
-            if (colGainsEntry.getValue() != colGainsMap.get(maxGainCol)) {
+            if (!Objects.equals(colGainsEntry.getValue(), colGainsMap.get(maxGainCol))) {
                 continue;
             }
             if (colZerosCountMap.get(colGainsEntry.getKey()) <= colZerosCountMap.get(maxGainCol)) {
@@ -233,7 +234,7 @@ public class HungarianAlgorithm {
     private static int getMaxGainWithMostZerosRow(int maxGainRow, Map<Integer, Integer> rowGainsMap, Map<Integer, Integer> rowZerosCountMap) {
         int maxGainWithMostZerosRow = maxGainRow;
         for (Map.Entry<Integer, Integer> rowGainsEntry : rowGainsMap.entrySet()) {
-            if (rowGainsEntry.getValue() != rowGainsMap.get(maxGainRow)) {
+            if (!Objects.equals(rowGainsEntry.getValue(), rowGainsMap.get(maxGainRow))) {
                 continue;
             }
             if (rowZerosCountMap.get(rowGainsEntry.getKey()) <= rowZerosCountMap.get(maxGainRow)) {

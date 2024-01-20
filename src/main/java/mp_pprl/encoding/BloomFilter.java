@@ -27,13 +27,6 @@ public class BloomFilter {
         }
     }
 
-    public void printCells() {
-        for (int c : cells) {
-            System.out.print(c);
-        }
-        System.out.println();
-    }
-
     private int hash(String data) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
