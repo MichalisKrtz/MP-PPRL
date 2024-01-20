@@ -55,11 +55,23 @@ public class EarlyMappingClusteringProtocol {
                     }
                 }
 
+                // Merge each edge's record to the edge's vertex.
+                Set<Record> assignedRecords = new HashSet<>();
                 for (Edge e : blockGraph.getEdges()) {
                     blockGraph.mergeClusterVertices(e);
+                    assignedRecords.add(e.record());
                 }
+                // If a record doesn't belong to a vertex(cluster) create a new singleton vertex.
+                for (Record rec : partyRecords.get(blockKey)) {
+                    if (!assignedRecords.contains(rec)) {
+                        blockGraph.addVertex(new Vertex(rec));
+                    }
+                }
+
+                blockGraph.clearEdges();
             }
             graph.addVertices(blockGraph.getVertices());
+
         }
 
         for (Vertex cluster : graph.getVertices()) {

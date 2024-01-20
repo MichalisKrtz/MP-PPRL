@@ -22,9 +22,10 @@ public class Application {
         // Parameters
         final int bloomFilterLength = 1000;
         final int numberOfHashFunctions = 30;
-        final int minimumSubsetSize = 3;
+        final int minimumSubsetSize = 2;
         final double similarityThreshold = 0.85;
 
+//        final String[] privateFields = {};
         final String[] privateFields = {"first_name", "last_name"};
         final String[] quasiIdentifiers = {"first_name", "last_name"};
         final String[] blockingKeyValues = {"first_name", "last_name"};

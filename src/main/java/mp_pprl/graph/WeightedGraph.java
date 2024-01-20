@@ -14,19 +14,12 @@ public class WeightedGraph {
         edges = new HashSet<>();
     }
 
-    public void mergeClusterVertices(Edge e) {
-        for (Vertex v : vertices) {
-            if (e.vertex().equals(v)) {
-                v.records().add(e.record());
-//                System.out.println("Merged Edge!!!");
-            } else {
-//                System.out.println("Didn't merge edge.");
-            }
-        }
+    public void clearEdges() {
+        edges.clear();
     }
 
-    public void removeEdge(Edge e) {
-        edges.remove(e);
+    public void mergeClusterVertices(Edge e) {
+        e.vertex().records().add(e.record());
     }
 
     public void addVertex(Vertex v) {
@@ -39,6 +32,10 @@ public class WeightedGraph {
 
     public void addEdge(Vertex v, Record r) {
         edges.add(new Edge(v, r));
+    }
+
+    public void removeEdge(Edge e) {
+        edges.remove(e);
     }
 
     public Set<Vertex> getVertices() {

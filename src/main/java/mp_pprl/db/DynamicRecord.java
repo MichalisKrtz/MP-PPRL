@@ -31,7 +31,7 @@ public class DynamicRecord implements Record {
     @Override
     public void printData() {
         for (String key : map.keySet()) {
-            System.out.println(key + ": " + map.get(key));
+            System.out.println(key + ": " + map.get(key).getValueAsString());
         }
     }
 }

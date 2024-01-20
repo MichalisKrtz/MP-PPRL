@@ -3,11 +3,11 @@ package mp_pprl.db;
 import java.util.Set;
 
 public interface Record {
-    public DynamicValue get(String propertyName);
+    DynamicValue get(String propertyName);
 
-    public Set<String> keySet();
+    Set<String> keySet();
 
-    public void put(String propertyName, DynamicValue propertyValue);
+    void put(String propertyName, DynamicValue propertyValue);
 
     void printData();
 }
