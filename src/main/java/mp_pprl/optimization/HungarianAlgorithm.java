@@ -1,16 +1,21 @@
 package mp_pprl.optimization;
 
-import mp_pprl.graph.ArrayIndex2D;
+import mp_pprl.db.Record;
 import mp_pprl.graph.Edge;
 import mp_pprl.graph.Vertex;
 import mp_pprl.protocols.SimilarityCalculator;
-import mp_pprl.db.Record;
 
 import java.util.*;
 
+/**
+ * An implementation of the classic hungarian algorithm for the assignment problem.
+ * <p>
+ * Copyright 2007 Gary Baker (GPL v3)
+ *
+ * @author gbaker
+ */
 public class HungarianAlgorithm {
-    // This method uses the Hungarian algorithm to select the optimal edges based on their similarity.
-    public static Set<Edge> findOptimalEdges(Set<Edge> edges) {
+    public static Set<Edge> computeAssignments(Set<Edge> edges) {
         List<Vertex> uniqueVertices = getUniqueVerticesFromEdges(edges);
         List<Record> uniqueRecords = getUniqueRecordsFromEdges(edges);
 
@@ -22,42 +27,275 @@ public class HungarianAlgorithm {
 
         double[][] similarityMatrix = initializeSimilarityMatrix(n, edges, uniqueVertices, uniqueRecords);
 
-        double[][] modifiedSimilarityMatrix = convertToMinimizationProblem(similarityMatrix);
+        similarityMatrix = convertToMinimizationProblem(similarityMatrix);
 
-        modifiedSimilarityMatrix = reduceRows(modifiedSimilarityMatrix);
+        // subtract minimum value from rows and columns to create lots of zeroes
+        reduceMatrix(similarityMatrix);
 
-        modifiedSimilarityMatrix = reduceColumns(modifiedSimilarityMatrix);
 
-        // The two lists are populated inside the checkForOptimalAssignment() method.
-        Set<Integer> crossedRows = new HashSet<>();
-        Set<Integer> crossedCols = new HashSet<>();
+        // non-negative values are the index of the starred or primed zero in the row or column
+        int[] starsByRow = new int[similarityMatrix.length];
+        Arrays.fill(starsByRow, -1);
+        int[] starsByCol = new int[similarityMatrix[0].length];
+        Arrays.fill(starsByCol, -1);
+        int[] primesByRow = new int[similarityMatrix.length];
+        Arrays.fill(primesByRow, -1);
 
-        while (!checkForOptimalAssignment(modifiedSimilarityMatrix, crossedRows, crossedCols)) {
-            modifiedSimilarityMatrix = shiftZeros(modifiedSimilarityMatrix, crossedRows, crossedCols);
-            crossedRows.clear();
-            crossedCols.clear();
-        }
+        // 1s mean covered, 0s mean not covered
+        int[] coveredRows = new int[similarityMatrix.length];
+        int[] coveredCols = new int[similarityMatrix[0].length];
 
-        List<ArrayIndex2D> indices = chooseFinalAssignments(modifiedSimilarityMatrix);
+        // star any zero that has no other starred zero in the same row or column
+        initStars(similarityMatrix, starsByRow, starsByCol);
+        coverColumnsOfStarredZeroes(starsByCol, coveredCols);
 
-        return getEdgesFromFinalAssignments(indices, uniqueVertices, uniqueRecords);
-    }
+        while (!allAreCovered(coveredCols)) {
 
-    // --- Only for debugging ---
-    private static void printMatrix(double[][] modifiedSimilarityMatrix) {
-        System.out.println("{");
-        for (double[] similarityMatrix : modifiedSimilarityMatrix) {
-            System.out.print("{");
-            for (int j = 0; j < modifiedSimilarityMatrix.length; j++) {
-                System.out.printf("%.2f", similarityMatrix[j]);
-                System.out.print(", ");
+            int[] primedZero = primeSomeUncoveredZero(similarityMatrix, primesByRow, coveredRows, coveredCols);
+
+            while (primedZero == null) {
+                // keep making more zeroes until we find something that we can prime (i.e. a zero that is uncovered)
+                makeMoreZeroes(similarityMatrix, coveredRows, coveredCols);
+                primedZero = primeSomeUncoveredZero(similarityMatrix, primesByRow, coveredRows, coveredCols);
             }
-            System.out.println("},");
+
+            // check if there is a starred zero in the primed zero's row
+            int columnIndex = starsByRow[primedZero[0]];
+            if (-1 == columnIndex) {
+
+                // if not, then we need to increment the zeroes and start over
+                incrementSetOfStarredZeroes(primedZero, starsByRow, starsByCol, primesByRow);
+                Arrays.fill(primesByRow, -1);
+                Arrays.fill(coveredRows, 0);
+                Arrays.fill(coveredCols, 0);
+                coverColumnsOfStarredZeroes(starsByCol, coveredCols);
+            } else {
+
+                // cover the row of the primed zero and uncover the column of the starred zero in the same row
+                coveredRows[primedZero[0]] = 1;
+                coveredCols[columnIndex] = 0;
+            }
         }
-        System.out.println("}");
+
+        // ok now we should have assigned everything
+        // take the starred zeroes in each column as the correct assignments
+
+        int[][] retval = new int[similarityMatrix.length][];
+        for (int i = 0; i < starsByCol.length; i++) {
+            retval[i] = new int[]{starsByCol[i], i};
+        }
+
+
+        return getEdgesFromFinalAssignments(retval, uniqueVertices, uniqueRecords);
+
+
     }
 
-    private static Set<Edge> getEdgesFromFinalAssignments(List<ArrayIndex2D> indices, List<Vertex> uniqueVertices, List<Record> uniqueRecords) {
+    private static boolean allAreCovered(int[] coveredCols) {
+        for (int covered : coveredCols) {
+            if (0 == covered) return false;
+        }
+        return true;
+    }
+
+
+    /**
+     * the first step of the hungarian algorithm
+     * is to find the smallest element in each row
+     * and subtract it's values from all elements
+     * in that row
+     *
+     * @return the next step to perform
+     */
+    private static void reduceMatrix(double[][] matrix) {
+
+        for (int i = 0; i < matrix.length; i++) {
+
+            // find the min value in the row
+            double minValInRow = Double.MAX_VALUE;
+            for (int j = 0; j < matrix[i].length; j++) {
+                if (minValInRow > matrix[i][j]) {
+                    minValInRow = matrix[i][j];
+                }
+            }
+
+            // subtract it from all values in the row
+            for (int j = 0; j < matrix[i].length; j++) {
+                matrix[i][j] -= minValInRow;
+            }
+        }
+
+        for (int i = 0; i < matrix[0].length; i++) {
+            double minValInCol = Double.MAX_VALUE;
+            for (int j = 0; j < matrix.length; j++) {
+                if (minValInCol > matrix[j][i]) {
+                    minValInCol = matrix[j][i];
+                }
+            }
+
+            for (int j = 0; j < matrix.length; j++) {
+                matrix[j][i] -= minValInCol;
+            }
+
+        }
+
+    }
+
+    /**
+     * init starred zeroes
+     * <p>
+     * for each column find the first zero
+     * if there is no other starred zero in that row
+     * then star the zero, cover the column and row and
+     * go onto the next column
+     *
+     * @param costMatrix
+     * @param starredZeroes
+     * @param coveredRows
+     * @param coveredCols
+     * @return the next step to perform
+     */
+    private static void initStars(double[][] costMatrix, int[] starsByRow, int[] starsByCol) {
+
+
+        int[] rowHasStarredZero = new int[costMatrix.length];
+        int[] colHasStarredZero = new int[costMatrix[0].length];
+
+        for (int i = 0; i < costMatrix.length; i++) {
+            for (int j = 0; j < costMatrix[i].length; j++) {
+                if (0 == costMatrix[i][j] && 0 == rowHasStarredZero[i] && 0 == colHasStarredZero[j]) {
+                    starsByRow[i] = j;
+                    starsByCol[j] = i;
+                    rowHasStarredZero[i] = 1;
+                    colHasStarredZero[j] = 1;
+                    break; // move onto the next row
+                }
+            }
+        }
+    }
+
+
+    /**
+     * just marke the columns covered for any coluimn containing a starred zero
+     *
+     * @param starsByCol
+     * @param coveredCols
+     */
+    private static void coverColumnsOfStarredZeroes(int[] starsByCol, int[] coveredCols) {
+        for (int i = 0; i < starsByCol.length; i++) {
+            coveredCols[i] = -1 == starsByCol[i] ? 0 : 1;
+        }
+    }
+
+
+    /**
+     * finds some uncovered zero and primes it
+     *
+     * @param matrix
+     * @param primesByRow
+     * @param coveredRows
+     * @param coveredCols
+     * @return
+     */
+    private static int[] primeSomeUncoveredZero(double matrix[][], int[] primesByRow,
+                                                int[] coveredRows, int[] coveredCols) {
+
+
+        // find an uncovered zero and prime it
+        for (int i = 0; i < matrix.length; i++) {
+            if (1 == coveredRows[i]) continue;
+            for (int j = 0; j < matrix[i].length; j++) {
+                // if it's a zero and the column is not covered
+                if (0 == matrix[i][j] && 0 == coveredCols[j]) {
+
+                    // ok this is an unstarred zero
+                    // prime it
+                    primesByRow[i] = j;
+                    return new int[]{i, j};
+                }
+            }
+        }
+        return null;
+
+    }
+
+    /**
+     * @param unpairedZeroPrime
+     * @param starsByRow
+     * @param starsByCol
+     * @param primesByRow
+     */
+    private static void incrementSetOfStarredZeroes(int[] unpairedZeroPrime, int[] starsByRow, int[] starsByCol, int[] primesByRow) {
+
+        // build the alternating zero sequence (prime, star, prime, star, etc)
+        int i, j = unpairedZeroPrime[1];
+
+        Set<int[]> zeroSequence = new LinkedHashSet<int[]>();
+        zeroSequence.add(unpairedZeroPrime);
+        boolean paired = false;
+        do {
+            i = starsByCol[j];
+            paired = -1 != i && zeroSequence.add(new int[]{i, j});
+            if (!paired) break;
+
+            j = primesByRow[i];
+            paired = -1 != j && zeroSequence.add(new int[]{i, j});
+
+        } while (paired);
+
+
+        // unstar each starred zero of the sequence
+        // and star each primed zero of the sequence
+        for (int[] zero : zeroSequence) {
+            if (starsByCol[zero[1]] == zero[0]) {
+                starsByCol[zero[1]] = -1;
+                starsByRow[zero[0]] = -1;
+            }
+            if (primesByRow[zero[0]] == zero[1]) {
+                starsByRow[zero[0]] = zero[1];
+                starsByCol[zero[1]] = zero[0];
+            }
+        }
+
+    }
+
+
+    private static void makeMoreZeroes(double[][] matrix, int[] coveredRows, int[] coveredCols) {
+
+        // find the minimum uncovered value
+        double minUncoveredValue = Double.MAX_VALUE;
+        for (int i = 0; i < matrix.length; i++) {
+            if (0 == coveredRows[i]) {
+                for (int j = 0; j < matrix[i].length; j++) {
+                    if (0 == coveredCols[j] && matrix[i][j] < minUncoveredValue) {
+                        minUncoveredValue = matrix[i][j];
+                    }
+                }
+            }
+        }
+
+        // add the min value to all covered rows
+        for (int i = 0; i < coveredRows.length; i++) {
+            if (1 == coveredRows[i]) {
+                for (int j = 0; j < matrix[i].length; j++) {
+                    matrix[i][j] += minUncoveredValue;
+                }
+            }
+        }
+
+        // subtract the min value from all uncovered columns
+        for (int i = 0; i < coveredCols.length; i++) {
+            if (0 == coveredCols[i]) {
+                for (int j = 0; j < matrix.length; j++) {
+                    matrix[j][i] -= minUncoveredValue;
+                }
+            }
+        }
+    }
+
+
+    // My methods
+    private static Set<Edge> getEdgesFromFinalAssignments(int[][] indices, List<Vertex> uniqueVertices, List<Record> uniqueRecords) {
         List<Integer> dummyRows = new ArrayList<>();
         List<Integer> dummyColumns = new ArrayList<>();
         if (uniqueVertices.size() > uniqueRecords.size()) {
@@ -71,252 +309,17 @@ public class HungarianAlgorithm {
         }
 
         Set<Edge> optimalEdges = new HashSet<>();
-        for (ArrayIndex2D index : indices) {
-            if (dummyRows.contains(index.row())) {
+        for (int[] index : indices) {
+            if (dummyRows.contains(index[0])) {
                 continue;
             }
-            if (dummyColumns.contains(index.col())) {
+            if (dummyColumns.contains(index[1])) {
                 continue;
             }
-            optimalEdges.add(new Edge(uniqueVertices.get(index.row()), uniqueRecords.get(index.col())));
+            optimalEdges.add(new Edge(uniqueVertices.get(index[0]), uniqueRecords.get(index[1])));
         }
 
         return optimalEdges;
-    }
-
-
-    /* Returns the indices of the final Assignments.
-    There might be more than one way to choose n zeros (i.e. optimal assignments).
-    All Cases will have the same total similarity. */
-    private static List<ArrayIndex2D> chooseFinalAssignments(double[][] matrix) {
-        List<ArrayIndex2D> indices = new ArrayList<>();
-
-        Set<Integer> availableRows = new HashSet<>();
-        Set<Integer> availableCols = new HashSet<>();
-        for (int i = 0; i < matrix.length; i++) {
-            availableRows.add(i);
-            availableCols.add(i);
-        }
-        while (!availableRows.isEmpty()) {
-            Map<Integer, Integer> rowZeroesMap = new HashMap<>();
-            for (int i = 0; i < matrix.length; i++) {
-                if (!availableRows.contains(i)) {
-                    continue;
-                }
-                int zeroesCount = 0;
-                for (int j = 0; j < matrix.length; j++) {
-                    if (!availableCols.contains(j)) {
-                        continue;
-                    }
-                    if (matrix[i][j] != 0) {
-                        continue;
-                    }
-                    zeroesCount++;
-                }
-                rowZeroesMap.put(i, zeroesCount);
-            }
-
-            int leastZeroesRow = Collections.min(rowZeroesMap.entrySet(), Map.Entry.comparingByValue()).getKey();
-            for (int j = 0; j < matrix.length; j++) {
-                if (matrix[leastZeroesRow][j] == 0 && availableCols.contains(j)) {
-                    indices.add(new ArrayIndex2D(leastZeroesRow, j));
-                    availableRows.remove(leastZeroesRow);
-                    availableCols.remove(j);
-                    break;
-                }
-            }
-        }
-
-        return indices;
-    }
-
-    private static double[][] shiftZeros(double[][] matrix, Set<Integer> crossedRows, Set<Integer> crossedCols) {
-        double minNumber = getMinUncrossedNumber(matrix, crossedRows, crossedCols);
-        double[][] modifiedMatrix = new double[matrix.length][matrix.length];
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix.length; j++) {
-                if (crossedRows.contains(i) && crossedCols.contains(j)) {
-                    modifiedMatrix[i][j] = matrix[i][j] + minNumber;
-                } else if (crossedRows.contains(i) || crossedCols.contains(j)) {
-                    modifiedMatrix[i][j] = matrix[i][j];
-                } else {
-                    modifiedMatrix[i][j] = matrix[i][j] - minNumber;
-                }
-            }
-        }
-
-        return modifiedMatrix;
-    }
-
-    private static double getMinUncrossedNumber(double[][] matrix, Set<Integer> crossedRows, Set<Integer> crossedCols) {
-        double minNumber = 1;
-        for (int i = 0; i < matrix.length; i++) {
-            if (crossedRows.contains(i)) {
-                continue;
-            }
-            for (int j = 0; j < matrix.length; j++) {
-                if (crossedCols.contains(j)) {
-                    continue;
-                }
-                if (minNumber > matrix[i][j]) {
-                    minNumber = matrix[i][j];
-                }
-            }
-        }
-
-        return minNumber;
-    }
-
-    //  The lists crossedRows and crossedCols are modified in order to be used in the shiftZeros method.
-    private static boolean checkForOptimalAssignment(double[][] matrix, Set<Integer> crossedRows, Set<Integer> crossedCols) {
-        int minLines = 0;
-
-        while (true) {
-            //  Initialize counters
-            Map<Integer, Integer> rowZerosCountMap = new HashMap<>();
-            Map<Integer, Integer> colZerosCountMap = new HashMap<>();
-            for (int i = 0; i < matrix.length; i++) {
-                rowZerosCountMap.put(i, 0);
-                colZerosCountMap.put(i, 0);
-            }
-            //  Count zeros for each available row and column
-            for (int i = 0; i < matrix.length; i++) {
-                for (int j = 0; j <matrix.length; j++) {
-                    if (matrix[i][j] != 0 || crossedRows.contains(i) || crossedCols.contains(j)) {
-                        continue;
-                    }
-                    rowZerosCountMap.replace(i, rowZerosCountMap.get(i) + 1);
-                    colZerosCountMap.replace(j, colZerosCountMap.get(j) + 1);
-                }
-            }
-
-            //  Break condition
-            //  Check if both the row and column with most zeros have 0 zeros, which means all zeros have been crossed.
-            int mostZerosRow = Collections.max(rowZerosCountMap.entrySet(), Map.Entry.comparingByValue()).getKey();
-            int mostZerosCol = Collections.max(colZerosCountMap.entrySet(), Map.Entry.comparingByValue()).getKey();
-            if (rowZerosCountMap.get(mostZerosRow) == 0 && colZerosCountMap.get(mostZerosCol) == 0) {
-                break;
-            }
-
-            //  Calculate gains for each row and column and cross the one with most gain.
-            Map<Integer, Integer> rowGainsMap = calculateGainsForEachRow(matrix, rowZerosCountMap, colZerosCountMap, crossedRows, crossedCols);
-            Map<Integer, Integer> colGainsMap = calculateGainsForEachColumn(matrix, rowZerosCountMap, colZerosCountMap, crossedRows, crossedCols);
-            int maxGainRow = Collections.max(rowGainsMap.entrySet(), Map.Entry.comparingByValue()).getKey();
-            int maxGainCol = Collections.max(colGainsMap.entrySet(), Map.Entry.comparingByValue()).getKey();
-            if (rowGainsMap.get(maxGainRow) >= colGainsMap.get(maxGainCol)) {
-                int maxGainWithMostZerosRow = getMaxGainWithMostZerosRow(maxGainRow, rowGainsMap, rowZerosCountMap);
-                crossedRows.add(maxGainWithMostZerosRow);
-            } else {
-                int maxGainWithMostZerosCol = getMaxGainWithMostZerosCol(maxGainCol, colGainsMap, colZerosCountMap);
-                crossedCols.add(maxGainWithMostZerosCol);
-            }
-
-            minLines++;
-        }
-
-        return minLines == matrix.length;
-    }
-
-    private static int getMaxGainWithMostZerosCol(int maxGainCol, Map<Integer, Integer> colGainsMap, Map<Integer, Integer> colZerosCountMap) {
-        int maxGainWithMostZerosCol = maxGainCol;
-        for (Map.Entry<Integer, Integer> colGainsEntry : colGainsMap.entrySet()) {
-            if (!Objects.equals(colGainsEntry.getValue(), colGainsMap.get(maxGainCol))) {
-                continue;
-            }
-            if (colZerosCountMap.get(colGainsEntry.getKey()) <= colZerosCountMap.get(maxGainCol)) {
-                continue;
-            }
-            maxGainWithMostZerosCol = colGainsEntry.getKey();
-        }
-        return maxGainWithMostZerosCol;
-    }
-
-    private static int getMaxGainWithMostZerosRow(int maxGainRow, Map<Integer, Integer> rowGainsMap, Map<Integer, Integer> rowZerosCountMap) {
-        int maxGainWithMostZerosRow = maxGainRow;
-        for (Map.Entry<Integer, Integer> rowGainsEntry : rowGainsMap.entrySet()) {
-            if (!Objects.equals(rowGainsEntry.getValue(), rowGainsMap.get(maxGainRow))) {
-                continue;
-            }
-            if (rowZerosCountMap.get(rowGainsEntry.getKey()) <= rowZerosCountMap.get(maxGainRow)) {
-                continue;
-            }
-            maxGainWithMostZerosRow = rowGainsEntry.getKey();
-        }
-        return maxGainWithMostZerosRow;
-    }
-
-    private static Map<Integer, Integer> calculateGainsForEachRow(double[][] matrix, Map<Integer, Integer> rowZerosCountMap, Map<Integer, Integer> colZerosCountMap, Set<Integer> crossedRows, Set<Integer> crossedCols) {
-        Map<Integer, Integer> rowGainsMap = new HashMap<>();
-        for (int i = 0; i < matrix.length; i++) {
-            if (rowZerosCountMap.get(i) == 0 || crossedRows.contains(i)) {
-                continue;
-            }
-            rowGainsMap.put(i, rowZerosCountMap.get(i));
-            for (int j = 0; j < matrix.length; j++) {
-                if (matrix[i][j] != 0 || crossedCols.contains(j)) {
-                    continue;
-                }
-                if (colZerosCountMap.get(j) > 1) {
-                    rowGainsMap.replace(i, rowGainsMap.get(i) - 1);
-                }
-            }
-        }
-
-        return rowGainsMap;
-    }
-
-    private static Map<Integer, Integer> calculateGainsForEachColumn(double[][] matrix, Map<Integer, Integer> rowZerosCountMap, Map<Integer, Integer> colZerosCountMap, Set<Integer> crossedRows, Set<Integer> crossedCols) {
-        Map<Integer, Integer> colGainsMap = new HashMap<>();
-        for (int j = 0; j < matrix.length; j++) {
-            if (colZerosCountMap.get(j) == 0 || crossedCols.contains(j)) {
-                continue;
-            }
-            colGainsMap.put(j, colZerosCountMap.get(j));
-            for (int i = 0; i < matrix.length; i++) {
-                if (matrix[i][j] != 0 || crossedRows.contains(i)) {
-                    continue;
-                }
-                if (rowZerosCountMap.get(i) > 1) {
-                    colGainsMap.replace(j, colGainsMap.get(j) - 1);
-                }
-            }
-        }
-
-        return colGainsMap;
-    }
-
-    private static double[][] reduceColumns(double[][] matrix) {
-        double[][] modifiedMatrix = new double[matrix.length][matrix.length];
-        for (int j = 0; j < matrix.length; j++) {
-            double columnMin = matrix[0][j];
-            for (int i = 1; i < matrix.length; i++) {
-                if (columnMin > matrix[i][j]) {
-                    columnMin = matrix[i][j];
-                }
-            }
-            for (int i = 0; i < matrix.length; i++) {
-                modifiedMatrix[i][j] = matrix[i][j] - columnMin;
-            }
-        }
-
-        return modifiedMatrix;
-    }
-
-    private static double[][] reduceRows(double[][] matrix) {
-        double[][] modifiedMatrix = new double[matrix.length][matrix.length];
-        for (int i = 0; i < matrix.length; i++) {
-            double rowMin = matrix[i][0];
-            for (int j = 1; j < matrix.length; j++) {
-                if (rowMin > matrix[i][j]) {
-                    rowMin = matrix[i][j];
-                }
-            }
-            for (int j = 0; j < matrix.length; j++) {
-                modifiedMatrix[i][j] = matrix[i][j] - rowMin;
-            }
-        }
-
-        return modifiedMatrix;
     }
 
     private static double[][] convertToMinimizationProblem(double[][] matrix) {
@@ -376,4 +379,5 @@ public class HungarianAlgorithm {
 
         return uniqueRecords;
     }
+
 }

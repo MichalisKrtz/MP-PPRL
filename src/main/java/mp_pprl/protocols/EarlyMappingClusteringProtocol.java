@@ -23,6 +23,7 @@ public class EarlyMappingClusteringProtocol {
         orderDatabasesDesc();
         // Iterate blocks
         for (String blockKey : getUnionOfBlocks()) {
+//            System.out.println(blockKey);
             WeightedGraph blockGraph = new WeightedGraph();
             for (Map<String, List<Record>> partyRecords : sharedRecords) {
                 if (!partyRecords.containsKey(blockKey)) {
@@ -45,7 +46,8 @@ public class EarlyMappingClusteringProtocol {
                         }
                     }
                 }
-                Set<Edge> optimalEdges = HungarianAlgorithm.findOptimalEdges(blockGraph.getEdges());
+
+                Set<Edge> optimalEdges = HungarianAlgorithm.computeAssignments(blockGraph.getEdges());
 
                 //  Use a copy of the blocks edges to avoid ConcurrentModificationException when removing the edge.
                 Set<Edge> blockGraphEdges = new HashSet<>(blockGraph.getEdges());
