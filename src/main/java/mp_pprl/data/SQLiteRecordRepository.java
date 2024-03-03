@@ -1,14 +1,17 @@
-package mp_pprl.db;
+package mp_pprl.data;
+
+import mp_pprl.domain.*;
+import mp_pprl.domain.Record;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RecordDAO {
+public class SQLiteRecordRepository implements RecordRepository {
     private final String dbPath;
     private Connection conn = null;
 
-    public RecordDAO(String dbPath) {
+    public SQLiteRecordRepository(String dbPath) {
         this.dbPath = dbPath;
     }
 
@@ -22,7 +25,7 @@ public class RecordDAO {
         }
     }
 
-    public List<Record> selectAll() {
+    public List<Record> getAll() {
         PreparedStatement ps = null;
         ResultSet rs = null;
         String query = "SELECT * FROM users";

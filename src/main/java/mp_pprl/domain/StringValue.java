@@ -1,7 +1,7 @@
-package mp_pprl.db;
+package mp_pprl.domain;
 
 public class StringValue implements DynamicValue {
-    public String value;
+    private final String value;
 
     public StringValue(String value) {
         this.value = value;

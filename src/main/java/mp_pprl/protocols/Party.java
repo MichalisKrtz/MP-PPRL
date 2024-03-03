@@ -1,86 +1,101 @@
 package mp_pprl.protocols;
 
-import mp_pprl.db.Record;
-import mp_pprl.db.DynamicRecord;
-import mp_pprl.db.DynamicValue;
-import mp_pprl.db.DynamicValueFactory;
+import mp_pprl.domain.Record;
+import mp_pprl.domain.RecordIdentifier;
 import mp_pprl.encoding.BloomFilter;
+import mp_pprl.encoding.CountingBloomFilter;
 import mp_pprl.encoding.Soundex;
 
 import java.util.*;
 
 public class Party {
     private final List<Record> records;
-    private final String[] privateFields;
+    private final List<RecordIdentifier> recordIdentifiers;
+    private Map<String, List<RecordIdentifier>> recordIdentifierGroups;
     private final String[] quasiIdentifiers;
     private final String[] blockingKeyValues;
+    private final int bloomFilterLength;
+    private final int numberOfHashFunctions;
 
-    public Party(String[] privateFields, String[] quasiIdentifiers, String[] blockingKeyValues) {
-        this.privateFields = privateFields.clone();
-        this.quasiIdentifiers = quasiIdentifiers.clone();
-        this.blockingKeyValues = blockingKeyValues.clone();
+    public Party(String[] quasiIdentifiers, String[] blockingKeyValues, int bloomFilterLength, int numberOfHashFunctions) {
         records = new ArrayList<>();
+        recordIdentifiers = new ArrayList<>();
+        this.quasiIdentifiers = quasiIdentifiers;
+        this.blockingKeyValues = blockingKeyValues;
+        this.bloomFilterLength = bloomFilterLength;
+        this.numberOfHashFunctions = numberOfHashFunctions;
+        generateRecordGroups();
+    }
+
+    public void generateRecordGroups() {
+        recordIdentifierGroups = groupRecordIdentifiersByBlockingKeyValue();
+    }
+
+    public void encodeRecords() {
+        for (int i = 0; i < records.size(); i++) {
+            BloomFilter bf = new BloomFilter(bloomFilterLength, numberOfHashFunctions);
+            for (String qId : quasiIdentifiers) {
+                bf.addElement(records.get(i).get(qId).getValueAsString());
+            }
+            recordIdentifiers.add(new RecordIdentifier(this, i, bf));
+            records.get(i).setBloomFilter(bf);
+        }
+    }
+
+    public void encodeRecordsOfBlock(String block) {
+        for (RecordIdentifier recordIdentifier : recordIdentifierGroups.get(block)) {
+            int recordIndex = recordIdentifier.getId();
+            BloomFilter bf = new BloomFilter(bloomFilterLength, numberOfHashFunctions);
+            for (String qId : quasiIdentifiers) {
+                bf.addElement(records.get(recordIndex).get(qId).getValueAsString());
+            }
+            recordIdentifier.setBloomFilter(bf);
+            records.get(recordIndex).setBloomFilter(bf);
+        }
+    }
+
+    public void addToCountingBloomFilter(CountingBloomFilter countingBloomFilter, int recordId) {
+        countingBloomFilter.addVector(records.get(recordId).getBloomFilter().getVector());
     }
 
     public void addRecords(List<Record> records) {
         this.records.addAll(records);
     }
 
-    public Map<String, List<Record>> shareRecords(int bloomFilterLength, int bloomFilterHashFunctions) {
-        generateBloomFilters(bloomFilterLength, bloomFilterHashFunctions);
-        Map<String, List<Record>> groupedMaskedRecords = groupRecords();
-
-        return removePrivateFieldsFromGroupedRecords(groupedMaskedRecords);
+    public int getRecordsSize() {
+        return records.size();
     }
 
-    private void generateBloomFilters(int bloomFilterLength, int bloomFilterHashFunctions) {
-        for (Record rec : records) {
-            StringBuilder sensitiveData = new StringBuilder();
-            for (String qId : quasiIdentifiers) {
-                sensitiveData.append(rec.get(qId).getValueAsString());
-            }
-            BloomFilter bf = new BloomFilter(bloomFilterLength, bloomFilterHashFunctions);
-            bf.addElement(sensitiveData.toString());
-            DynamicValue bfCells = DynamicValueFactory.createDynamicValue("BYTE_ARRAY", bf.getCells());
-            rec.put("bloom_filter", bfCells);
-        }
+    public Map<String, List<RecordIdentifier>> getRecordIdentifierGroups() {
+        return recordIdentifierGroups;
     }
 
-    private Map<String, List<Record>> groupRecords() {
-        Map<String, List<Record>> recordGroups = new HashMap<>();
-        for (Record rec : records) {
+    private Map<String, List<RecordIdentifier>> groupRecordIdentifiersByBlockingKeyValue() {
+        Map<String, List<RecordIdentifier>> recordGroups = new HashMap<>();
+        for (int i = 0; i < records.size(); i++) {
+            Optional<RecordIdentifier> optionalRecordIdentifier = getRecordIdentifierById(i);
+            RecordIdentifier recordIdentifier = optionalRecordIdentifier.orElseThrow();
             StringBuilder soundexStringBuilder = new StringBuilder();
             for (String bkv : blockingKeyValues) {
-                soundexStringBuilder.append(Soundex.encode(rec.get(bkv).getValueAsString()));
+                soundexStringBuilder.append(Soundex.encode(records.get(i).get(bkv).getValueAsString()));
             }
             String soundex = soundexStringBuilder.toString();
             if (!recordGroups.containsKey(soundex)) {
-                List<Record> group = new ArrayList<>();
-                group.add(rec);
+                List<RecordIdentifier> group = new ArrayList<>();
+                group.add(recordIdentifier);
                 recordGroups.put(soundex, group);
                 continue;
             }
-            recordGroups.get(soundex).add(rec);
+            recordGroups.get(soundex).add(recordIdentifier);
         }
         return recordGroups;
     }
 
-    private Map<String, List<Record>> removePrivateFieldsFromGroupedRecords(Map<String, List<Record>> groupedRecords) {
-        Map<String, List<Record>> sharableRecordGroups = new HashMap<>();
-        for (Map.Entry<String, List<Record>> entry : groupedRecords.entrySet()) {
-            String newSoundex = entry.getKey();
-            List<Record> newGroup = new ArrayList<>();
-            for (Record recordsGroup : entry.getValue()) {
-                Record newRecord = new DynamicRecord();
-                for (String field : recordsGroup.keySet()) {
-                    if (!Arrays.asList(privateFields).contains(field)) {
-                        newRecord.put(field, recordsGroup.get(field));
-                    }
-                }
-                newGroup.add(newRecord);
-            }
-            sharableRecordGroups.put(newSoundex, newGroup);
+    private Optional<RecordIdentifier> getRecordIdentifierById(int id) {
+        for (RecordIdentifier recordIdentifier : recordIdentifiers) {
+            if (recordIdentifier.getId() == id) return Optional.of(recordIdentifier);
         }
-        return sharableRecordGroups;
+        return Optional.empty();
     }
+
 }

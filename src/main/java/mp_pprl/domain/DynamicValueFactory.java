@@ -1,4 +1,4 @@
-package mp_pprl.db;
+package mp_pprl.domain;
 
 
 public class DynamicValueFactory {

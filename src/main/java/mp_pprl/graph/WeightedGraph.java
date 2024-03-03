@@ -1,16 +1,17 @@
 package mp_pprl.graph;
 
-import mp_pprl.db.Record;
+import mp_pprl.domain.Record;
+import mp_pprl.domain.RecordIdentifier;
+import mp_pprl.protocols.Party;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class WeightedGraph {
-    private final Set<Vertex> vertices;
+    private final Set<Cluster> clusters;
     private final Set<Edge> edges;
 
     public WeightedGraph() {
-        vertices = new HashSet<>();
+        clusters = new HashSet<>();
         edges = new HashSet<>();
     }
 
@@ -18,28 +19,32 @@ public class WeightedGraph {
         edges.clear();
     }
 
-    public void mergeClusterVertices(Edge e) {
-        e.vertex().records().add(e.record());
+    public void mergeClusters() {
+        Iterator<Edge> iterator  = edges.iterator();
+        while (iterator.hasNext()) {
+            Edge e = iterator.next();
+            for (RecordIdentifier recordIdentifier : e.c2().recordIdentifierList()) {
+                e.c1().recordIdentifierList().add(recordIdentifier);
+            }
+            clusters.remove(e.c2());
+            iterator.remove();
+        }
     }
 
-    public void addVertex(Vertex v) {
-        vertices.add(v);
+    public void addCluster(Cluster cluster) {
+        clusters.add(cluster);
     }
 
-    public void addVertices(Set<Vertex> vertices) {
-        this.vertices.addAll(vertices);
+    public void addClusters(Set<Cluster> clusters) {
+        this.clusters.addAll(clusters);
     }
 
-    public void addEdge(Vertex v, Record r) {
-        edges.add(new Edge(v, r));
+    public void addEdge(Cluster c1, Cluster c2, double similarity) {
+        edges.add(new Edge(c1, c2, similarity));
     }
 
-    public void removeEdge(Edge e) {
-        edges.remove(e);
-    }
-
-    public Set<Vertex> getVertices() {
-        return vertices;
+    public Set<Cluster> getClusters() {
+        return clusters;
     }
 
     public Set<Edge> getEdges() {

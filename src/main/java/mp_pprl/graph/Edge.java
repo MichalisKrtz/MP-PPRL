@@ -1,25 +1,18 @@
 package mp_pprl.graph;
 
-import mp_pprl.db.Record;
-
 import java.util.Objects;
 
-public record Edge(Vertex vertex, Record record) {
+public record Edge(Cluster c1, Cluster c2, double similarity) {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Edge edge = (Edge) o;
-
-        if (!Objects.equals(vertex, edge.vertex)) return false;
-        return Objects.equals(record, edge.record);
+        return Double.compare(similarity, edge.similarity) == 0 && Objects.equals(c1, edge.c1) && Objects.equals(c2, edge.c2);
     }
 
     @Override
     public int hashCode() {
-        int result = vertex != null ? vertex.hashCode() : 0;
-        result = 31 * result + (record != null ? record.hashCode() : 0);
-        return result;
+        return Objects.hash(c1, c2, similarity);
     }
 }

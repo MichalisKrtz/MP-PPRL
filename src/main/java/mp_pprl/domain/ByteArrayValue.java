@@ -1,9 +1,9 @@
-package mp_pprl.db;
+package mp_pprl.domain;
 
 import java.util.Arrays;
 
 public class ByteArrayValue implements DynamicValue {
-    public byte[] value;
+    private final byte[] value;
 
     public ByteArrayValue(byte[] value) {
         this.value = value;

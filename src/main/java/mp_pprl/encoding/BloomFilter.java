@@ -2,35 +2,37 @@ package mp_pprl.encoding;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 public class BloomFilter {
     private final int length;
-    private final byte[] cells;
+    private final byte[] vector;
     private final int numberOfHashFunctions;
 
     public BloomFilter(int length, int numberOfHashFunctions) {
         this.length = length;
-        cells = new byte[length];
+        vector = new byte[length];
         this.numberOfHashFunctions = numberOfHashFunctions;
     }
 
     /*addElement() takes a string and splits it in 2 character substrings(ex. word -> wo,or,rd).
-    Then it hashes those substrings numberOfHashFunctions times, each time with a different variation(i.e. +j)
-    and turns the according cells from 0 to 1.
+    Then it hashes those substrings 'numberOfHashFunctions' times, each time with a different
+    variation(i.e. subString + j) and turns the according cells from 0 to 1.
      */
     public void addElement(String element) {
-        for (int i = 0; i < element.length() - 1; i++) {
-            for (int j = 0; j < numberOfHashFunctions; j++) {
-                String data = String.valueOf(element.charAt(i + 1)) + element.charAt(i);
-                cells[hash(data + j)] = 1;
+        for (int i = 0; i < numberOfHashFunctions; i++) {
+            for (int j = 0; j < element.length() - 1; j++) {
+                String subString = String.valueOf(element.charAt(j)) + element.charAt(j + 1);
+                vector[hash(subString + i)] = 1;
             }
         }
     }
 
     private int hash(String data) {
         try {
+            byte[] message = data.getBytes();
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(data.getBytes());
+            md.update(message);
             byte[] hash = md.digest();
 
             int result = 0;
@@ -45,7 +47,16 @@ public class BloomFilter {
         }
     }
 
-    public byte[] getCells() {
-        return cells;
+    public byte[] getVector() {
+        return vector;
+    }
+
+    @Override
+    public String toString() {
+        return "BloomFilter{" +
+                "length=" + length +
+                ", vector=" + Arrays.toString(vector) +
+                ", numberOfHashFunctions=" + numberOfHashFunctions +
+                '}';
     }
 }

@@ -1,4 +1,6 @@
-package mp_pprl.db;
+package mp_pprl.domain;
+
+import mp_pprl.encoding.BloomFilter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,6 +8,7 @@ import java.util.Set;
 
 public class DynamicRecord implements Record {
     private final Map<String, DynamicValue> map;
+    private BloomFilter bloomFilter;
 
     public DynamicRecord() {
         map = new HashMap<>();
@@ -15,17 +18,25 @@ public class DynamicRecord implements Record {
         map = recordData;
     }
 
+    @Override
     public DynamicValue get(String propertyName) {
         return map.get(propertyName);
     }
 
     @Override
-    public Set<String> keySet() {
-        return map.keySet();
-    }
-
     public void put(String propertyName, DynamicValue propertyValue) {
         map.put(propertyName, propertyValue);
+    }
+
+    @Override
+    public void remove(String key) {
+        map.remove(key);
+    }
+
+    @Override
+    public Set<String> keySet() {
+        return map.keySet();
+
     }
 
     @Override
@@ -34,4 +45,15 @@ public class DynamicRecord implements Record {
             System.out.println(key + ": " + map.get(key).getValueAsString());
         }
     }
+
+    @Override
+    public BloomFilter getBloomFilter() {
+        return bloomFilter;
+    }
+
+    @Override
+    public void setBloomFilter(BloomFilter bloomFilter) {
+        this.bloomFilter = bloomFilter;
+    }
+
 }

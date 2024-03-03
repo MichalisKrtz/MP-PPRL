@@ -1,7 +1,7 @@
-package mp_pprl.db;
+package mp_pprl.domain;
 
 public class IntegerValue implements DynamicValue {
-    public Integer value;
+    private final Integer value;
 
     public IntegerValue(Integer value) {
         this.value = value;

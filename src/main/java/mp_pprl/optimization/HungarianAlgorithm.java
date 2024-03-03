@@ -1,9 +1,7 @@
 package mp_pprl.optimization;
 
-import mp_pprl.db.Record;
 import mp_pprl.graph.Edge;
-import mp_pprl.graph.Vertex;
-import mp_pprl.protocols.SimilarityCalculator;
+import mp_pprl.graph.Cluster;
 
 import java.util.*;
 
@@ -16,16 +14,16 @@ import java.util.*;
  */
 public class HungarianAlgorithm {
     public static Set<Edge> computeAssignments(Set<Edge> edges) {
-        List<Vertex> uniqueVertices = getUniqueVerticesFromEdges(edges);
-        List<Record> uniqueRecords = getUniqueRecordsFromEdges(edges);
+        List<Cluster> uniqueClustersX = getUniqueClustersX(edges);
+        List<Cluster> uniqueClustersY = getUniqueClustersY(edges);
 
-        int n = findSimilarityMatrixSize(uniqueVertices, uniqueRecords);
+        int n = findSimilarityMatrixSize(uniqueClustersX, uniqueClustersY);
 
         if (n == 0) {
             return new HashSet<>();
         }
 
-        double[][] similarityMatrix = initializeSimilarityMatrix(n, edges, uniqueVertices, uniqueRecords);
+        double[][] similarityMatrix = initializeSimilarityMatrix(n, edges, uniqueClustersX, uniqueClustersY);
 
         similarityMatrix = convertToMinimizationProblem(similarityMatrix);
 
@@ -85,10 +83,7 @@ public class HungarianAlgorithm {
             retval[i] = new int[]{starsByCol[i], i};
         }
 
-
-        return getEdgesFromFinalAssignments(retval, uniqueVertices, uniqueRecords);
-
-
+        return getEdgesFromFinalAssignments(retval, edges, uniqueClustersX, uniqueClustersY);
     }
 
     private static boolean allAreCovered(int[] coveredCols) {
@@ -295,15 +290,15 @@ public class HungarianAlgorithm {
 
 
     // My methods
-    private static Set<Edge> getEdgesFromFinalAssignments(int[][] indices, List<Vertex> uniqueVertices, List<Record> uniqueRecords) {
+    private static Set<Edge> getEdgesFromFinalAssignments(int[][] indices, Set<Edge> edges,List<Cluster> uniqueClustersX, List<Cluster> uniqueClustersY) {
         List<Integer> dummyRows = new ArrayList<>();
         List<Integer> dummyColumns = new ArrayList<>();
-        if (uniqueVertices.size() > uniqueRecords.size()) {
-            for (int i = uniqueRecords.size(); i < uniqueVertices.size(); i++) {
+        if (uniqueClustersX.size() > uniqueClustersY.size()) {
+            for (int i = uniqueClustersY.size(); i < uniqueClustersX.size(); i++) {
                 dummyColumns.add(i);
             }
-        } else if (uniqueVertices.size() < uniqueRecords.size()) {
-            for (int i = uniqueVertices.size(); i < uniqueRecords.size(); i++) {
+        } else if (uniqueClustersX.size() < uniqueClustersY.size()) {
+            for (int i = uniqueClustersX.size(); i < uniqueClustersY.size(); i++) {
                 dummyRows.add(i);
             }
         }
@@ -313,10 +308,16 @@ public class HungarianAlgorithm {
             if (dummyRows.contains(index[0])) {
                 continue;
             }
+
             if (dummyColumns.contains(index[1])) {
                 continue;
             }
-            optimalEdges.add(new Edge(uniqueVertices.get(index[0]), uniqueRecords.get(index[1])));
+
+            for (Edge edge : edges) {
+                if (edge.c1().equals(uniqueClustersX.get(index[0])) && edge.c2().equals(uniqueClustersY.get(index[1]))) {
+                    optimalEdges.add(edge);
+                }
+            }
         }
 
         return optimalEdges;
@@ -341,43 +342,41 @@ public class HungarianAlgorithm {
         return modifiedMatrix;
     }
 
-    private static double[][] initializeSimilarityMatrix(int matrixSize, Set<Edge> edges, List<Vertex> uniqueVertices, List<Record> uniqueRecords) {
+    private static double[][] initializeSimilarityMatrix(int matrixSize, Set<Edge> edges, List<Cluster> uniqueClustersX, List<Cluster> uniqueClustersY) {
         double[][] similarityMatrix = new double[matrixSize][matrixSize];
-        for (int i = 0; i < uniqueVertices.size(); i++) {
-            for (int j = 0; j < uniqueRecords.size(); j++) {
-                if (edges.contains(new Edge(uniqueVertices.get(i), uniqueRecords.get(j)))) {
-                    similarityMatrix[i][j] = SimilarityCalculator.calculateAverageSimilarity(uniqueVertices.get(i), uniqueRecords.get(j));
-                }
-            }
+        for (Edge edge : edges) {
+            int clusterXIndex = uniqueClustersX.indexOf(edge.c1());
+            int clusterYIndex = uniqueClustersY.indexOf(edge.c2());
+            similarityMatrix[clusterXIndex][clusterYIndex] = edge.similarity();
         }
 
         return similarityMatrix;
     }
 
-    private static int findSimilarityMatrixSize(List<Vertex> vertices, List<Record> records) {
-        return Math.max(vertices.size(), records.size());
+    private static int findSimilarityMatrixSize(List<Cluster> clustersX, List<Cluster> clustersY) {
+        return Math.max(clustersX.size(), clustersY.size());
     }
 
-    private static List<Vertex> getUniqueVerticesFromEdges(Set<Edge> edges) {
-        List<Vertex> uniqueVertices = new ArrayList<>();
+    private static List<Cluster> getUniqueClustersX(Set<Edge> edges) {
+        List<Cluster> uniqueClustersX = new ArrayList<>();
         for (Edge e : edges) {
-            if (!uniqueVertices.contains(e.vertex())) {
-                uniqueVertices.add(e.vertex());
+            if (!uniqueClustersX.contains(e.c1())) {
+                uniqueClustersX.add(e.c1());
             }
         }
 
-        return uniqueVertices;
+        return uniqueClustersX;
     }
 
-    private static List<Record> getUniqueRecordsFromEdges(Set<Edge> edges) {
-        List<Record> uniqueRecords = new ArrayList<>();
+    private static List<Cluster> getUniqueClustersY(Set<Edge> edges) {
+        List<Cluster> uniqueClustersY = new ArrayList<>();
         for (Edge e : edges) {
-            if (!uniqueRecords.contains(e.record())) {
-                uniqueRecords.add(e.record());
+            if (!uniqueClustersY.contains(e.c2())) {
+                uniqueClustersY.add(e.c2());
             }
         }
 
-        return uniqueRecords;
+        return uniqueClustersY;
     }
 
 }
