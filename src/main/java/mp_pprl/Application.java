@@ -3,6 +3,7 @@ package mp_pprl;
 import mp_pprl.data.SQLiteRecordRepository;
 import mp_pprl.domain.Record;
 import mp_pprl.domain.RecordIdentifier;
+import mp_pprl.encoding.EncodingHandler;
 import mp_pprl.protocols.EarlyMappingClusteringProtocol;
 import mp_pprl.protocols.Party;
 import mp_pprl.domain.RecordRepository;
@@ -29,7 +30,7 @@ public class Application {
         // Timing
         long start, end, elapsedTime;
         start = System.currentTimeMillis();
-        runEarlyMappingClusteringProtocol(true);
+        runEarlyMappingClusteringProtocol(false);
         end = System.currentTimeMillis();
         elapsedTime = end - start;
         if (elapsedTime < 1000) {
@@ -60,8 +61,9 @@ public class Application {
         }
 
         System.out.println("Encoding party records...");
+        EncodingHandler encodingHandler = new EncodingHandler();
         for (Party party : parties) {
-            party.encodeRecords();
+            party.encodeRecords(encodingHandler);
         }
 
         System.out.println("Grouping party records...");

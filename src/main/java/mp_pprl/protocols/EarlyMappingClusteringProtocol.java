@@ -1,8 +1,7 @@
 package mp_pprl.protocols;
 
-import mp_pprl.domain.Record;
 import mp_pprl.domain.RecordIdentifier;
-import mp_pprl.encoding.CountingBloomFilter;
+import mp_pprl.encoding.EncodingHandler;
 import mp_pprl.graph.Edge;
 import mp_pprl.graph.Cluster;
 import mp_pprl.graph.WeightedGraph;
@@ -59,30 +58,25 @@ public class EarlyMappingClusteringProtocol {
                     continue;
                 }
 
-                Set<Cluster> newClusters = new HashSet<>();
+                Set<Cluster> newClusterSet = new HashSet<>();
                 for (RecordIdentifier recordIdentifier : block) {
                     Cluster newCluster = new Cluster(recordIdentifier);
-                    newClusters.add(newCluster);
+                    newClusterSet.add(newCluster);
                     for (Cluster cluster : blockGraph.getClusters()) {
-                        List<CountingBloomFilter> cbfList = new ArrayList<>();
-                        for (RecordIdentifier clusteredRecordIdentifier : cluster.recordIdentifierList()) {
-                            List<RecordIdentifier> recordIdentifiersForSummation = new ArrayList<>();
-                            // Add one clustered record.
-                            recordIdentifiersForSummation.add(clusteredRecordIdentifier);
-                            // Add the record from the new singleton cluster.
-                            recordIdentifiersForSummation.add(recordIdentifier);
-                            CountingBloomFilter cbf = SummationProtocol.execute(recordIdentifiersForSummation, bloomFilterLength);
-                            cbfList.add(cbf);
+                        double similarity;
+                        if (enhancedPrivacy) {
+                            similarity = SimilarityCalculator.averageSimilaritySecure(cluster, recordIdentifier, bloomFilterLength);
+                        } else {
+                            similarity = SimilarityCalculator.averageSimilarity(cluster, recordIdentifier);
                         }
 
-                        double similarity = SimilarityCalculator.calculateAverageSimilarity(cbfList);
                         if (similarity >= similarityThreshold) {
                             blockGraph.addEdge(cluster, newCluster, similarity);
                         }
                     }
                 }
                 // Add new records to the block's graph.
-                blockGraph.addClusters(newClusters);
+                blockGraph.addClusters(newClusterSet);
                 // Find optimal edges.
                 Set<Edge> optimalEdges = HungarianAlgorithm.computeAssignments(blockGraph.getEdges());
                 // Prune edges that are not optimal.
@@ -104,14 +98,16 @@ public class EarlyMappingClusteringProtocol {
     }
 
     private void encodeParties(List<Party> participantParties) {
+        EncodingHandler encodingHandler = new EncodingHandler();
         for (Party party : participantParties) {
-            party.encodeRecords();
+            party.encodeRecords(encodingHandler);
         }
     }
 
     private void encodeBlockOfParties(List<Party> participantParties, String block) {
+        EncodingHandler encodingHandler = new EncodingHandler();
         for (Party party : participantParties) {
-            party.encodeRecordsOfBlock(block);
+            party.encodeRecordsOfBlock(encodingHandler, block);
         }
     }
 

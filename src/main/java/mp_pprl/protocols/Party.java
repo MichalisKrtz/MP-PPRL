@@ -4,6 +4,7 @@ import mp_pprl.domain.Record;
 import mp_pprl.domain.RecordIdentifier;
 import mp_pprl.encoding.BloomFilter;
 import mp_pprl.encoding.CountingBloomFilter;
+import mp_pprl.encoding.EncodingHandler;
 import mp_pprl.encoding.Soundex;
 
 import java.util.*;
@@ -31,9 +32,10 @@ public class Party {
         recordIdentifierGroups = groupRecordIdentifiersByBlockingKeyValue();
     }
 
-    public void encodeRecords() {
+    /*Encode records to bloom filters. Set the bloom filters of the Records and the Record Identifiers*/
+    public void encodeRecords(EncodingHandler encodingHandler) {
         for (int i = 0; i < records.size(); i++) {
-            BloomFilter bf = new BloomFilter(bloomFilterLength, numberOfHashFunctions);
+            BloomFilter bf = new BloomFilter(bloomFilterLength, numberOfHashFunctions, encodingHandler);
             for (String qId : quasiIdentifiers) {
                 bf.addElement(records.get(i).get(qId).getValueAsString());
             }
@@ -42,14 +44,14 @@ public class Party {
         }
     }
 
-    public void encodeRecordsOfBlock(String block) {
+    /*Encode records of one block to bloom filters. Set the bloom filters of the Records*/
+    public void encodeRecordsOfBlock(EncodingHandler encodingHandler, String block) {
         for (RecordIdentifier recordIdentifier : recordIdentifierGroups.get(block)) {
             int recordIndex = recordIdentifier.getId();
-            BloomFilter bf = new BloomFilter(bloomFilterLength, numberOfHashFunctions);
+            BloomFilter bf = new BloomFilter(bloomFilterLength, numberOfHashFunctions, encodingHandler);
             for (String qId : quasiIdentifiers) {
                 bf.addElement(records.get(recordIndex).get(qId).getValueAsString());
             }
-            recordIdentifier.setBloomFilter(bf);
             records.get(recordIndex).setBloomFilter(bf);
         }
     }
