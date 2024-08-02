@@ -1,4 +1,4 @@
-package mp_pprl.domain;
+package mp_pprl.core.domain;
 
 public class IntegerValue implements DynamicValue {
     private final Integer value;

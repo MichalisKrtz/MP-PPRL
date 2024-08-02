@@ -1,7 +1,7 @@
-package mp_pprl.optimization;
+package mp_pprl.incremental_clustering.optimization;
 
-import mp_pprl.graph.Edge;
-import mp_pprl.graph.Cluster;
+import mp_pprl.incremental_clustering.graph.Edge;
+import mp_pprl.incremental_clustering.graph.Cluster;
 
 import java.util.*;
 

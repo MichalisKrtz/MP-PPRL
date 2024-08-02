@@ -1,4 +1,4 @@
-package mp_pprl.domain;
+package mp_pprl.core.domain;
 
 public class StringValue implements DynamicValue {
     private final String value;

@@ -1,11 +1,12 @@
-package mp_pprl.protocols;
+package mp_pprl.incremental_clustering;
 
-import mp_pprl.domain.RecordIdentifier;
-import mp_pprl.encoding.EncodingHandler;
-import mp_pprl.graph.Edge;
-import mp_pprl.graph.Cluster;
-import mp_pprl.graph.WeightedGraph;
-import mp_pprl.optimization.HungarianAlgorithm;
+import mp_pprl.core.domain.RecordIdentifier;
+import mp_pprl.core.encoding.EncodingHandler;
+import mp_pprl.incremental_clustering.graph.Edge;
+import mp_pprl.incremental_clustering.graph.Cluster;
+import mp_pprl.incremental_clustering.graph.WeightedGraph;
+import mp_pprl.incremental_clustering.optimization.HungarianAlgorithm;
+import mp_pprl.core.Party;
 
 import java.util.*;
 

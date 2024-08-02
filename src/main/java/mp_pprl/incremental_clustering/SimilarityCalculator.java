@@ -1,8 +1,9 @@
-package mp_pprl.protocols;
+package mp_pprl.incremental_clustering;
 
-import mp_pprl.domain.RecordIdentifier;
-import mp_pprl.encoding.CountingBloomFilter;
-import mp_pprl.graph.Cluster;
+import mp_pprl.core.domain.RecordIdentifier;
+import mp_pprl.core.encoding.CountingBloomFilter;
+import mp_pprl.incremental_clustering.graph.Cluster;
+import mp_pprl.incremental_clustering.SummationProtocol;
 
 import java.util.ArrayList;
 import java.util.List;

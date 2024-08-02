@@ -1,7 +1,7 @@
-package mp_pprl.domain;
+package mp_pprl.core.domain;
 
-import mp_pprl.encoding.BloomFilter;
-import mp_pprl.protocols.Party;
+import mp_pprl.core.encoding.BloomFilter;
+import mp_pprl.core.Party;
 
 public class RecordIdentifier {
     private final Party party;

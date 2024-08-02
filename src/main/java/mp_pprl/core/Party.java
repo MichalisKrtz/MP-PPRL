@@ -1,11 +1,11 @@
-package mp_pprl.protocols;
+package mp_pprl.core;
 
-import mp_pprl.domain.Record;
-import mp_pprl.domain.RecordIdentifier;
-import mp_pprl.encoding.BloomFilter;
-import mp_pprl.encoding.CountingBloomFilter;
-import mp_pprl.encoding.EncodingHandler;
-import mp_pprl.encoding.Soundex;
+import mp_pprl.core.domain.Record;
+import mp_pprl.core.domain.RecordIdentifier;
+import mp_pprl.core.encoding.BloomFilter;
+import mp_pprl.core.encoding.CountingBloomFilter;
+import mp_pprl.core.encoding.EncodingHandler;
+import mp_pprl.core.encoding.Soundex;
 
 import java.util.*;
 
@@ -66,6 +66,10 @@ public class Party {
 
     public int getRecordsSize() {
         return records.size();
+    }
+
+    public List<RecordIdentifier> getRecordIdentifiers() {
+        return recordIdentifiers;
     }
 
     public Map<String, List<RecordIdentifier>> getRecordIdentifierGroups() {

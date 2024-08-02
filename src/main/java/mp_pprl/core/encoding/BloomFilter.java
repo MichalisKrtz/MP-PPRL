@@ -1,14 +1,12 @@
-package mp_pprl.encoding;
+package mp_pprl.core.encoding;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 public class BloomFilter {
     private final int length;
     private final byte[] vector;
     private final int numberOfHashFunctions;
-    private EncodingHandler encodingHandler;
+    private final EncodingHandler encodingHandler;
 
     public BloomFilter(int length, int numberOfHashFunctions, EncodingHandler encodingHandler) {
         this.length = length;

@@ -1,6 +1,6 @@
-package mp_pprl.domain;
+package mp_pprl.core.domain;
 
-import mp_pprl.encoding.BloomFilter;
+import mp_pprl.core.encoding.BloomFilter;
 
 import java.util.Set;
 

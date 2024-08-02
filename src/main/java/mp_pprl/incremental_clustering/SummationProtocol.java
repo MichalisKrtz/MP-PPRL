@@ -1,7 +1,8 @@
-package mp_pprl.protocols;
+package mp_pprl.incremental_clustering;
 
-import mp_pprl.domain.RecordIdentifier;
-import mp_pprl.encoding.CountingBloomFilter;
+import mp_pprl.core.Party;
+import mp_pprl.core.domain.RecordIdentifier;
+import mp_pprl.core.encoding.CountingBloomFilter;
 
 import java.util.List;
 import java.util.Random;

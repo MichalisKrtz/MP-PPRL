@@ -1,4 +1,4 @@
-package mp_pprl.graph;
+package mp_pprl.incremental_clustering.graph;
 
 import java.util.Objects;
 

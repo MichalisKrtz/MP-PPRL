@@ -1,13 +1,13 @@
 package mp_pprl;
 
-import mp_pprl.data.SQLiteRecordRepository;
-import mp_pprl.domain.Record;
-import mp_pprl.domain.RecordIdentifier;
-import mp_pprl.encoding.EncodingHandler;
-import mp_pprl.protocols.EarlyMappingClusteringProtocol;
-import mp_pprl.protocols.Party;
-import mp_pprl.domain.RecordRepository;
-import mp_pprl.graph.Cluster;
+import mp_pprl.core.data.SQLiteRecordRepository;
+import mp_pprl.core.domain.Record;
+import mp_pprl.core.encoding.EncodingHandler;
+import mp_pprl.incremental_clustering.EarlyMappingClusteringProtocol;
+import mp_pprl.dynamic_metric_space.MetricSpaceProtocol;
+import mp_pprl.core.Party;
+import mp_pprl.core.domain.RecordRepository;
+import mp_pprl.incremental_clustering.graph.Cluster;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -22,15 +22,16 @@ public class Application {
     private static final double similarityThreshold = 0.85;
     // Databases
     private final static String[] dbPaths = {
-            "C:\\MP-PPRL Databases\\dataset_one.db",
-            "C:\\MP-PPRL Databases\\dataset_one.db",
-            "C:\\MP-PPRL Databases\\dataset_one.db"};
+            "C:\\MP-PPRL Databases\\dataset_four.db",
+            "C:\\MP-PPRL Databases\\dataset_four.db",
+            "C:\\MP-PPRL Databases\\dataset_four.db"};
 
     public static void run() {
         // Timing
         long start, end, elapsedTime;
         start = System.currentTimeMillis();
-        runEarlyMappingClusteringProtocol(false);
+//        runEarlyMappingClusteringProtocol(false);
+        runMetricSpaceProtocol();
         end = System.currentTimeMillis();
         elapsedTime = end - start;
         if (elapsedTime < 1000) {
@@ -38,6 +39,36 @@ public class Application {
         } else {
             System.out.println("Total Elapsed Time: " + TimeUnit.MILLISECONDS.toSeconds(elapsedTime) + " seconds.");
         }
+    }
+
+    public static void runMetricSpaceProtocol() {
+        System.out.println("Application running...");
+
+
+        System.out.println("Retrieving records from the databases...");
+        int numberOfParties = dbPaths.length;
+        List<RecordRepository> recordRepositories = new ArrayList<>();
+        List<List<Record>> listsOfPartyRecords = new ArrayList<>();
+        for (int i = 0; i < numberOfParties; i++) {
+            recordRepositories.add(new SQLiteRecordRepository(dbPaths[i]));
+            listsOfPartyRecords.add(recordRepositories.get(i).getAll());
+        }
+
+        System.out.println("Adding records to parties...");
+        List<Party> parties = new ArrayList<>();
+        for (int i = 0; i < numberOfParties; i++ ) {
+            parties.add(new Party(quasiIdentifiers, blockingKeyValues, bloomFilterLength, numberOfHashFunctions));
+            parties.get(i).addRecords(listsOfPartyRecords.get(i));
+        }
+
+        System.out.println("Encoding party records...");
+        EncodingHandler encodingHandler = new EncodingHandler();
+        for (Party party : parties) {
+            party.encodeRecords(encodingHandler);
+        }
+
+        MetricSpaceProtocol metricSpaceProtocol = new MetricSpaceProtocol(parties);
+        metricSpaceProtocol.run();
     }
 
     public static void runEarlyMappingClusteringProtocol(boolean enhancedPrivacy) {

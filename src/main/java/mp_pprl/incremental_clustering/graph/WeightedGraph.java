@@ -1,8 +1,6 @@
-package mp_pprl.graph;
+package mp_pprl.incremental_clustering.graph;
 
-import mp_pprl.domain.Record;
-import mp_pprl.domain.RecordIdentifier;
-import mp_pprl.protocols.Party;
+import mp_pprl.core.domain.RecordIdentifier;
 
 import java.util.*;
 

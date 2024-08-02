@@ -1,7 +1,7 @@
-package mp_pprl.data;
+package mp_pprl.core.data;
 
-import mp_pprl.domain.*;
-import mp_pprl.domain.Record;
+import mp_pprl.core.domain.*;
+import mp_pprl.core.domain.Record;
 
 import java.sql.*;
 import java.util.ArrayList;
