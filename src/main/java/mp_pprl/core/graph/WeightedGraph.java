@@ -1,4 +1,4 @@
-package mp_pprl.incremental_clustering.graph;
+package mp_pprl.core.graph;
 
 import mp_pprl.core.domain.RecordIdentifier;
 
@@ -21,8 +21,8 @@ public class WeightedGraph {
         Iterator<Edge> iterator  = edges.iterator();
         while (iterator.hasNext()) {
             Edge e = iterator.next();
-            for (RecordIdentifier recordIdentifier : e.c2().recordIdentifierList()) {
-                e.c1().recordIdentifierList().add(recordIdentifier);
+            for (RecordIdentifier recordIdentifier : e.c2().recordIdentifiersSet()) {
+                e.c1().recordIdentifiersSet().add(recordIdentifier);
             }
             clusters.remove(e.c2());
             iterator.remove();

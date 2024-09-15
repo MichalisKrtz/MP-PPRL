@@ -2,9 +2,10 @@ package mp_pprl.incremental_clustering;
 
 import mp_pprl.core.domain.RecordIdentifier;
 import mp_pprl.core.encoding.EncodingHandler;
-import mp_pprl.incremental_clustering.graph.Edge;
-import mp_pprl.incremental_clustering.graph.Cluster;
-import mp_pprl.incremental_clustering.graph.WeightedGraph;
+import mp_pprl.core.graph.Edge;
+import mp_pprl.core.graph.Cluster;
+import mp_pprl.core.graph.WeightedGraph;
+import mp_pprl.incremental_clustering.optimization.Hungarian;
 import mp_pprl.incremental_clustering.optimization.HungarianAlgorithm;
 import mp_pprl.core.Party;
 
@@ -79,7 +80,8 @@ public class EarlyMappingClusteringProtocol {
                 // Add new records to the block's graph.
                 blockGraph.addClusters(newClusterSet);
                 // Find optimal edges.
-                Set<Edge> optimalEdges = HungarianAlgorithm.computeAssignments(blockGraph.getEdges());
+                Set<Edge> optimalEdges = HungarianAlgorithm.computeAssignments(blockGraph.getEdges(), true);
+//                Set<Edge> optimalEdges = Hungarian.computeAssignments(blockGraph.getEdges(), true);
                 // Prune edges that are not optimal.
                 blockGraph.getEdges().removeIf(e -> !optimalEdges.contains(e));
                 // Merge clusters.
@@ -90,7 +92,7 @@ public class EarlyMappingClusteringProtocol {
         }
 
         for (Cluster cluster : graph.getClusters()) {
-            if (cluster.recordIdentifierList().size() >= minimumSubsetSize) {
+            if (cluster.recordIdentifiersSet().size() >= minimumSubsetSize) {
                 finalClusters.add(cluster);
             }
         }

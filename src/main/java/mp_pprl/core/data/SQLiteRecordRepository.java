@@ -28,7 +28,7 @@ public class SQLiteRecordRepository implements RecordRepository {
     public List<Record> getAll() {
         PreparedStatement ps = null;
         ResultSet rs = null;
-        String query = "SELECT * FROM users";
+        String query = "SELECT * FROM users limit 1000";
         try {
             connect();
             ps = conn.prepareStatement(query);
