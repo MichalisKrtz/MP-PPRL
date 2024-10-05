@@ -2,12 +2,13 @@ package mp_pprl;
 
 import mp_pprl.core.data.SQLiteRecordRepository;
 import mp_pprl.core.domain.Record;
+import mp_pprl.core.domain.RecordIdentifier;
 import mp_pprl.core.encoding.EncodingHandler;
 import mp_pprl.incremental_clustering.EarlyMappingClusteringProtocol;
 import mp_pprl.dynamic_metric_space.MetricSpaceProtocol;
 import mp_pprl.core.Party;
 import mp_pprl.core.domain.RecordRepository;
-import mp_pprl.incremental_clustering.graph.Cluster;
+import mp_pprl.core.graph.Cluster;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -19,12 +20,23 @@ public class Application {
     private static final String[] quasiIdentifiers = {"first_name", "last_name"};
     private static final String[] blockingKeyValues = {"first_name", "last_name"};
     private static final int minimumSubsetSize = 1;
-    private static final double similarityThreshold = 0.85;
+    private static final double similarityThreshold = 0.75;
     // Databases
+//    private final static String[] dbPaths = {
+//            "C:\\MP-PPRL Databases\\dataset_one.db",
+//            "C:\\MP-PPRL Databases\\dataset_one.db",
+//            "C:\\MP-PPRL Databases\\dataset_one.db",
+//            "C:\\MP-PPRL Databases\\dataset_one.db",
+//            "C:\\MP-PPRL Databases\\dataset_one.db",
+//            "C:\\MP-PPRL Databases\\dataset_one.db",
+//            "C:\\MP-PPRL Databases\\dataset_one.db"};
+
     private final static String[] dbPaths = {
-            "C:\\MP-PPRL Databases\\dataset_four.db",
-            "C:\\MP-PPRL Databases\\dataset_four.db",
-            "C:\\MP-PPRL Databases\\dataset_four.db"};
+            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/dataset_one.db",
+            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/dataset_two.db",
+            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/dataset_one.db",
+            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/dataset_two.db"
+    };
 
     public static void run() {
         // Timing
@@ -49,9 +61,11 @@ public class Application {
         int numberOfParties = dbPaths.length;
         List<RecordRepository> recordRepositories = new ArrayList<>();
         List<List<Record>> listsOfPartyRecords = new ArrayList<>();
+        int id = 1;
         for (int i = 0; i < numberOfParties; i++) {
-            recordRepositories.add(new SQLiteRecordRepository(dbPaths[i]));
+            recordRepositories.add(new SQLiteRecordRepository(dbPaths[i], id));
             listsOfPartyRecords.add(recordRepositories.get(i).getAll());
+            id++;
         }
 
         System.out.println("Adding records to parties...");
@@ -67,6 +81,7 @@ public class Application {
             party.encodeRecords(encodingHandler);
         }
 
+        System.out.println("Metric space protocol...");
         MetricSpaceProtocol metricSpaceProtocol = new MetricSpaceProtocol(parties);
         metricSpaceProtocol.run();
     }
@@ -79,9 +94,11 @@ public class Application {
         int numberOfParties = dbPaths.length;
         List<RecordRepository> recordRepositories = new ArrayList<>();
         List<List<Record>> listsOfPartyRecords = new ArrayList<>();
+        int id = 1;
         for (int i = 0; i < numberOfParties; i++) {
-            recordRepositories.add(new SQLiteRecordRepository(dbPaths[i]));
+            recordRepositories.add(new SQLiteRecordRepository(dbPaths[i], id));
             listsOfPartyRecords.add(recordRepositories.get(i).getAll());
+            id++;
         }
 
         System.out.println("Adding records to parties...");
@@ -110,6 +127,14 @@ public class Application {
 
         System.out.println("Early Mapping Clustering Protocol finished successfully");
         System.out.println("Number of clusters: " + clusters.size());
+
+        for (Cluster c : clusters) {
+            System.out.print("Cluster: " );
+            for (RecordIdentifier r : c.recordIdentifiersSet()) {
+                System.out.print(r.getId() + ", ");
+            }
+            System.out.println();
+        }
     }
 
     private static Set<String> getUnionOfBlocks(List<Party> parties) {

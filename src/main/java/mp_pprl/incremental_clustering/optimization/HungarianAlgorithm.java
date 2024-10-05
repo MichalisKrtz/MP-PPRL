@@ -1,7 +1,7 @@
 package mp_pprl.incremental_clustering.optimization;
 
-import mp_pprl.incremental_clustering.graph.Edge;
-import mp_pprl.incremental_clustering.graph.Cluster;
+import mp_pprl.core.graph.Edge;
+import mp_pprl.core.graph.Cluster;
 
 import java.util.*;
 
@@ -13,7 +13,7 @@ import java.util.*;
  * @author gbaker
  */
 public class HungarianAlgorithm {
-    public static Set<Edge> computeAssignments(Set<Edge> edges) {
+    public static Set<Edge> computeAssignments(Set<Edge> edges, boolean maximization) {
         List<Cluster> uniqueClustersX = getUniqueClustersX(edges);
         List<Cluster> uniqueClustersY = getUniqueClustersY(edges);
 
@@ -23,9 +23,11 @@ public class HungarianAlgorithm {
             return new HashSet<>();
         }
 
-        double[][] similarityMatrix = initializeSimilarityMatrix(n, edges, uniqueClustersX, uniqueClustersY);
+        double[][] similarityMatrix = initializeSimilarityMatrix(n, edges, uniqueClustersX, uniqueClustersY, maximization);
 
-        similarityMatrix = convertToMinimizationProblem(similarityMatrix);
+        if (maximization) {
+            similarityMatrix = convertToMaximizationProblem(similarityMatrix);
+        }
 
         // subtract minimum value from rows and columns to create lots of zeroes
         reduceMatrix(similarityMatrix);
@@ -82,6 +84,7 @@ public class HungarianAlgorithm {
         for (int i = 0; i < starsByCol.length; i++) {
             retval[i] = new int[]{starsByCol[i], i};
         }
+
 
         return getEdgesFromFinalAssignments(retval, edges, uniqueClustersX, uniqueClustersY);
     }
@@ -323,7 +326,7 @@ public class HungarianAlgorithm {
         return optimalEdges;
     }
 
-    private static double[][] convertToMinimizationProblem(double[][] matrix) {
+    private static double[][] convertToMaximizationProblem(double[][] matrix) {
         double[][] modifiedMatrix = new double[matrix.length][matrix.length];
         double maxElement = 0;
         for (int i = 0; i < matrix.length; i++) {
@@ -342,12 +345,21 @@ public class HungarianAlgorithm {
         return modifiedMatrix;
     }
 
-    private static double[][] initializeSimilarityMatrix(int matrixSize, Set<Edge> edges, List<Cluster> uniqueClustersX, List<Cluster> uniqueClustersY) {
+    private static double[][] initializeSimilarityMatrix(int matrixSize, Set<Edge> edges, List<Cluster> uniqueClustersX, List<Cluster> uniqueClustersY, boolean maximization) {
         double[][] similarityMatrix = new double[matrixSize][matrixSize];
+
+        if (!maximization) {
+            for(int i = 0; i < matrixSize; i++) {
+                for (int j = 0; j < matrixSize; j++) {
+                    similarityMatrix[i][j] = Double.MAX_VALUE;
+                }
+            }
+        }
+
         for (Edge edge : edges) {
             int clusterXIndex = uniqueClustersX.indexOf(edge.c1());
             int clusterYIndex = uniqueClustersY.indexOf(edge.c2());
-            similarityMatrix[clusterXIndex][clusterYIndex] = edge.similarity();
+            similarityMatrix[clusterXIndex][clusterYIndex] = edge.metric();
         }
 
         return similarityMatrix;

@@ -10,7 +10,12 @@ public class EncodingHandler {
     public EncodingHandler() {
         SecureRandom random = new SecureRandom();
         this.salt = new byte[16];
-        random.nextBytes(salt);
+        //TODO
+        //Having a random salt, interferes with the selection of the first pivots
+//        random.nextBytes(salt);
+        for (int i = 0; i < 16; i++) {
+            this.salt[i] = 0;
+        }
     }
 
     public int hash(String data, int bloomFilterLength) {

@@ -2,17 +2,16 @@ package mp_pprl.incremental_clustering;
 
 import mp_pprl.core.domain.RecordIdentifier;
 import mp_pprl.core.encoding.CountingBloomFilter;
-import mp_pprl.incremental_clustering.graph.Cluster;
-import mp_pprl.incremental_clustering.SummationProtocol;
+import mp_pprl.core.graph.Cluster;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class SimilarityCalculator {
-    /*This method uses the secure summation protocol to create counting bloom filters and then calculates the similarity.*/
+    /*This method uses the secure summation protocol to create counting bloom filters and then calculates the metric.*/
     public static double averageSimilaritySecure(Cluster cluster, RecordIdentifier recordIdentifier, int bloomFilterLength) {
         List<CountingBloomFilter> countingBloomFilterList = new ArrayList<>();
-        for (RecordIdentifier clusteredRecordIdentifier : cluster.recordIdentifierList()) {
+        for (RecordIdentifier clusteredRecordIdentifier : cluster.recordIdentifiersSet()) {
             List<RecordIdentifier> recordIdentifiersForSummation = new ArrayList<>();
             // Add one clustered record.
             recordIdentifiersForSummation.add(clusteredRecordIdentifier);
@@ -31,12 +30,12 @@ public class SimilarityCalculator {
 
     public static double averageSimilarity(Cluster cluster, RecordIdentifier recordIdentifier) {
         double sumSimilarity = 0;
-        for (RecordIdentifier clusteredRecord : cluster.recordIdentifierList()) {
+        for (RecordIdentifier clusteredRecord : cluster.recordIdentifiersSet()) {
 
             sumSimilarity += calculateSimilarity(recordIdentifier, clusteredRecord);
         }
 
-        return sumSimilarity / cluster.recordIdentifierList().size();
+        return sumSimilarity / cluster.recordIdentifiersSet().size();
     }
 
     private static double calculateDiceCoefficient(CountingBloomFilter countingBloomFilter) {

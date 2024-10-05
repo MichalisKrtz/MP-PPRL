@@ -10,9 +10,11 @@ import java.util.List;
 public class SQLiteRecordRepository implements RecordRepository {
     private final String dbPath;
     private Connection conn = null;
+    private int id;
 
-    public SQLiteRecordRepository(String dbPath) {
+    public SQLiteRecordRepository(String dbPath, int id) {
         this.dbPath = dbPath;
+        this.id = id;
     }
 
     private void connect() {
@@ -28,7 +30,8 @@ public class SQLiteRecordRepository implements RecordRepository {
     public List<Record> getAll() {
         PreparedStatement ps = null;
         ResultSet rs = null;
-        String query = "SELECT * FROM users";
+        String query = "SELECT * FROM users limit " + (1000 + id);
+        id++;
         try {
             connect();
             ps = conn.prepareStatement(query);

@@ -1,24 +1,24 @@
 package mp_pprl.dynamic_metric_space;
 
-import mp_pprl.core.domain.RecordIdentifier;
+import mp_pprl.core.graph.Cluster;
 
 public class Pivot {
-    private final RecordIdentifier recordIdentifier;
-    private int radius = 0;
+    private final Cluster cluster;
+    private double radius = 0;
 
-    public Pivot(RecordIdentifier recordIdentifier) {
-        this.recordIdentifier = recordIdentifier;
+    public Pivot(Cluster cluster) {
+        this.cluster = cluster;
     }
 
-    public RecordIdentifier getRecordIdentifier() {
-        return recordIdentifier;
+    public Cluster getCluster() {
+        return cluster;
     }
 
-    public int getRadius() {
+    public double getRadius() {
         return radius;
     }
 
-    public void setRadius(int radius) {
+    public void setRadius(double radius) {
         this.radius = radius;
     }
 }
