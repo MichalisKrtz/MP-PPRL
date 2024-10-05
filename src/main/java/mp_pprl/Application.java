@@ -32,9 +32,10 @@ public class Application {
 //            "C:\\MP-PPRL Databases\\dataset_one.db"};
 
     private final static String[] dbPaths = {
-            "/home/michalis/MP-PPRL Databases/dataset_one.db",
-            "/home/michalis/MP-PPRL Databases/dataset_one.db",
-            "/home/michalis/MP-PPRL Databases/dataset_one.db"
+            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/dataset_one.db",
+            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/dataset_two.db",
+            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/dataset_one.db",
+            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/dataset_two.db"
     };
 
     public static void run() {
@@ -60,9 +61,11 @@ public class Application {
         int numberOfParties = dbPaths.length;
         List<RecordRepository> recordRepositories = new ArrayList<>();
         List<List<Record>> listsOfPartyRecords = new ArrayList<>();
+        int id = 1;
         for (int i = 0; i < numberOfParties; i++) {
-            recordRepositories.add(new SQLiteRecordRepository(dbPaths[i]));
+            recordRepositories.add(new SQLiteRecordRepository(dbPaths[i], id));
             listsOfPartyRecords.add(recordRepositories.get(i).getAll());
+            id++;
         }
 
         System.out.println("Adding records to parties...");
@@ -91,9 +94,11 @@ public class Application {
         int numberOfParties = dbPaths.length;
         List<RecordRepository> recordRepositories = new ArrayList<>();
         List<List<Record>> listsOfPartyRecords = new ArrayList<>();
+        int id = 1;
         for (int i = 0; i < numberOfParties; i++) {
-            recordRepositories.add(new SQLiteRecordRepository(dbPaths[i]));
+            recordRepositories.add(new SQLiteRecordRepository(dbPaths[i], id));
             listsOfPartyRecords.add(recordRepositories.get(i).getAll());
+            id++;
         }
 
         System.out.println("Adding records to parties...");

@@ -44,15 +44,21 @@ public class MetricSpace {
         int hammingDistanceSum = 0;
         for (RecordIdentifier r1 : c1.recordIdentifiersSet()) {
             for (RecordIdentifier r2 : c2.recordIdentifiersSet()) {
-                for (int i = 0; i < r2.getBloomFilter().getVector().length; i++) {
-                    if (r1.getBloomFilter().getVector()[i] != r2.getBloomFilter().getVector()[i]) {
-                        hammingDistanceSum++;
-                    }
-                }
+                hammingDistanceSum += calculateHammingDistance(r1.getBloomFilter().getVector(), r2.getBloomFilter().getVector());
             }
         }
 
         return (double) hammingDistanceSum / (c1.recordIdentifiersSet().size() * c2.recordIdentifiersSet().size());
+    }
+
+    private static int calculateHammingDistance(byte[] bf1, byte[] bf2) {
+        int hammingDistance = 0;
+        for (int i = 0; i < bf1.length; i++) {
+            if (bf1[i] != bf2[i]) {
+                hammingDistance++;
+            }
+        }
+        return hammingDistance;
     }
 
     public void printMetricSpace() {
@@ -80,14 +86,14 @@ public class MetricSpace {
         for (Pivot p : pivotElementsMap.keySet()) {
             System.out.print("Pivot's cluster: " );
             for (RecordIdentifier r : p.getCluster().recordIdentifiersSet()) {
-                System.out.print(r.getId() + " - ");
+                System.out.print(r.getId() + "(p: " + r.getParty().getRecordsSize() + ")" + " - ");
             }
             System.out.println();
             System.out.println("Clusters");
             for (Cluster c : pivotElementsMap.get(p)) {
                 System.out.print("Cluster: ");
                 for (RecordIdentifier r : c.recordIdentifiersSet()) {
-                    System.out.print(r.getId() + " - ");
+                    System.out.print(r.getId() + "(p: " + r.getParty().getRecordsSize() + ")" + " - ");
                 }
                 System.out.println();
             }
