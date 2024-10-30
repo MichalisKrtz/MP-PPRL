@@ -1,6 +1,6 @@
 package mp_pprl.core.graph;
 
-import mp_pprl.core.domain.RecordIdentifier;
+import mp_pprl.core.BloomFilterEncodedRecord;
 
 import java.util.*;
 
@@ -21,8 +21,8 @@ public class WeightedGraph {
         Iterator<Edge> iterator  = edges.iterator();
         while (iterator.hasNext()) {
             Edge e = iterator.next();
-            for (RecordIdentifier recordIdentifier : e.c2().recordIdentifiersSet()) {
-                e.c1().recordIdentifiersSet().add(recordIdentifier);
+            for (BloomFilterEncodedRecord bloomFilterEncodedRecord : e.c2().bloomFilterEncodedRecordsSet()) {
+                e.c1().bloomFilterEncodedRecordsSet().add(bloomFilterEncodedRecord);
             }
             clusters.remove(e.c2());
             iterator.remove();

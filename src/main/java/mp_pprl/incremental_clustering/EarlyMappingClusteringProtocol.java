@@ -1,11 +1,10 @@
 package mp_pprl.incremental_clustering;
 
-import mp_pprl.core.domain.RecordIdentifier;
+import mp_pprl.core.BloomFilterEncodedRecord;
 import mp_pprl.core.encoding.EncodingHandler;
 import mp_pprl.core.graph.Edge;
 import mp_pprl.core.graph.Cluster;
 import mp_pprl.core.graph.WeightedGraph;
-import mp_pprl.incremental_clustering.optimization.Hungarian;
 import mp_pprl.incremental_clustering.optimization.HungarianAlgorithm;
 import mp_pprl.core.Party;
 
@@ -50,26 +49,26 @@ public class EarlyMappingClusteringProtocol {
                     continue;
                 }
 
-                List<RecordIdentifier> block = parties.get(i).getRecordIdentifierGroups().get(blockKey);
+                List<BloomFilterEncodedRecord> block = parties.get(i).getRecordIdentifierGroups().get(blockKey);
 
                 if (blockGraph.getClusters().isEmpty()) {
-                    for (RecordIdentifier recordIdentifier : block) {
-                        Cluster cluster = new Cluster(recordIdentifier);
+                    for (BloomFilterEncodedRecord bloomFilterEncodedRecord : block) {
+                        Cluster cluster = new Cluster(bloomFilterEncodedRecord);
                         blockGraph.addCluster(cluster);
                     }
                     continue;
                 }
 
                 Set<Cluster> newClusterSet = new HashSet<>();
-                for (RecordIdentifier recordIdentifier : block) {
-                    Cluster newCluster = new Cluster(recordIdentifier);
+                for (BloomFilterEncodedRecord bloomFilterEncodedRecord : block) {
+                    Cluster newCluster = new Cluster(bloomFilterEncodedRecord);
                     newClusterSet.add(newCluster);
                     for (Cluster cluster : blockGraph.getClusters()) {
                         double similarity;
                         if (enhancedPrivacy) {
-                            similarity = SimilarityCalculator.averageSimilaritySecure(cluster, recordIdentifier, bloomFilterLength);
+                            similarity = SimilarityCalculator.averageSimilaritySecure(cluster, bloomFilterEncodedRecord, bloomFilterLength);
                         } else {
-                            similarity = SimilarityCalculator.averageSimilarity(cluster, recordIdentifier);
+                            similarity = SimilarityCalculator.averageSimilarity(cluster, bloomFilterEncodedRecord);
                         }
 
                         if (similarity >= similarityThreshold) {
@@ -92,7 +91,7 @@ public class EarlyMappingClusteringProtocol {
         }
 
         for (Cluster cluster : graph.getClusters()) {
-            if (cluster.recordIdentifiersSet().size() >= minimumSubsetSize) {
+            if (cluster.bloomFilterEncodedRecordsSet().size() >= minimumSubsetSize) {
                 finalClusters.add(cluster);
             }
         }

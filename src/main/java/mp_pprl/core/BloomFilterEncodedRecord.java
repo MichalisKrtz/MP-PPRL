@@ -1,14 +1,13 @@
-package mp_pprl.core.domain;
+package mp_pprl.core;
 
 import mp_pprl.core.encoding.BloomFilter;
-import mp_pprl.core.Party;
 
-public class RecordIdentifier {
+public class BloomFilterEncodedRecord {
     private final Party party;
     private final int id;
-    private BloomFilter bloomFilter;
+    private final BloomFilter bloomFilter;
 
-    public RecordIdentifier(Party party, int id, BloomFilter bloomFilter) {
+    public BloomFilterEncodedRecord(Party party, int id, BloomFilter bloomFilter) {
         this.party = party;
         this.id = id;
         this.bloomFilter = bloomFilter;
@@ -24,10 +23,6 @@ public class RecordIdentifier {
 
     public BloomFilter getBloomFilter() {
         return bloomFilter;
-    }
-
-    public void setBloomFilter(BloomFilter bloomFilter) {
-        this.bloomFilter = bloomFilter;
     }
 
     @Override

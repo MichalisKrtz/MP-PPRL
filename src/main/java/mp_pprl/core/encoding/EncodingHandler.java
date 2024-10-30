@@ -24,7 +24,6 @@ public class EncodingHandler {
             System.arraycopy(data.getBytes(), 0, message, 0, data.getBytes().length);
             System.arraycopy(salt, 0, message, data.getBytes().length, salt.length);
 
-
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(message);
             byte[] hash = md.digest();
@@ -36,6 +35,29 @@ public class EncodingHandler {
             if (result < 0) result *= -1;
 
             return result % bloomFilterLength;
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String hash(String data) {
+        try {
+            byte[] message = data.getBytes();
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(message);
+            byte[] hash = md.digest(data.getBytes());
+
+            // Convert byte array into hexadecimal format
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }

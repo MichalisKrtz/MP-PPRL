@@ -1,6 +1,6 @@
 package mp_pprl.dynamic_metric_space;
 
-import mp_pprl.core.domain.RecordIdentifier;
+import mp_pprl.core.BloomFilterEncodedRecord;
 import mp_pprl.core.graph.Cluster;
 
 import java.util.HashMap;
@@ -16,7 +16,7 @@ public class MetricSpace {
         pivotElementsDistanceMap = new HashMap<>();
     }
 
-    public static int distance(RecordIdentifier r1, RecordIdentifier r2) {
+    public static int distance(BloomFilterEncodedRecord r1, BloomFilterEncodedRecord r2) {
         int hammingDistance = 0;
         int bloomFilterLength = r1.getBloomFilter().getVector().length;
         for (int i = 0; i < bloomFilterLength; i++) {
@@ -27,9 +27,9 @@ public class MetricSpace {
         return hammingDistance;
     }
 
-    public static double distance(RecordIdentifier r, Cluster c) {
+    public static double distance(BloomFilterEncodedRecord r, Cluster c) {
         int hammingDistanceSum = 0;
-        for (RecordIdentifier clusterRecord : c.recordIdentifiersSet()) {
+        for (BloomFilterEncodedRecord clusterRecord : c.bloomFilterEncodedRecordsSet()) {
             for (int i = 0; i < r.getBloomFilter().getVector().length; i++) {
                 if (r.getBloomFilter().getVector()[i] != clusterRecord.getBloomFilter().getVector()[i]) {
                     hammingDistanceSum++;
@@ -37,18 +37,18 @@ public class MetricSpace {
             }
         }
 
-        return (double) hammingDistanceSum / c.recordIdentifiersSet().size();
+        return (double) hammingDistanceSum / c.bloomFilterEncodedRecordsSet().size();
     }
 
     public static double distance(Cluster c1, Cluster c2) {
         int hammingDistanceSum = 0;
-        for (RecordIdentifier r1 : c1.recordIdentifiersSet()) {
-            for (RecordIdentifier r2 : c2.recordIdentifiersSet()) {
+        for (BloomFilterEncodedRecord r1 : c1.bloomFilterEncodedRecordsSet()) {
+            for (BloomFilterEncodedRecord r2 : c2.bloomFilterEncodedRecordsSet()) {
                 hammingDistanceSum += calculateHammingDistance(r1.getBloomFilter().getVector(), r2.getBloomFilter().getVector());
             }
         }
 
-        return (double) hammingDistanceSum / (c1.recordIdentifiersSet().size() * c2.recordIdentifiersSet().size());
+        return (double) hammingDistanceSum / (c1.bloomFilterEncodedRecordsSet().size() * c2.bloomFilterEncodedRecordsSet().size());
     }
 
     private static int calculateHammingDistance(byte[] bf1, byte[] bf2) {
@@ -63,36 +63,36 @@ public class MetricSpace {
 
     public void printMetricSpace() {
         System.out.println("PIVOTS = " + pivotElementsMap.size());
-//        for (Pivot p : pivotElementsMap.keySet()) {
-//            System.out.print(p.getCluster().recordIdentifiersSet().iterator().next().getId() + ", ");
-//        }
-//        System.out.println();
-//
-//        for (Map.Entry<Pivot, List<Cluster>> entry: pivotElementsMap.entrySet()) {
-//            System.out.print(entry.getKey().getCluster().recordIdentifiersSet().iterator().next().getId() + ": ");
-//            for (Cluster elementsCluster : entry.getValue()) {
-//                System.out.print("(");
-//                for (RecordIdentifier element : elementsCluster.recordIdentifiersSet()) {
-//                    System.out.print(element.getId() + ", ");
-//                }
-//                System.out.print("), ");
-//            }
-//            System.out.println();
-//        }
+        for (Pivot p : pivotElementsMap.keySet()) {
+            System.out.print(p.getCluster().bloomFilterEncodedRecordsSet().iterator().next().getId() + ", ");
+        }
+        System.out.println();
+
+        for (Map.Entry<Pivot, List<Cluster>> entry: pivotElementsMap.entrySet()) {
+            System.out.print(entry.getKey().getCluster().bloomFilterEncodedRecordsSet().iterator().next().getId() + ": ");
+            for (Cluster elementsCluster : entry.getValue()) {
+                System.out.print("(");
+                for (BloomFilterEncodedRecord element : elementsCluster.bloomFilterEncodedRecordsSet()) {
+                    System.out.print(element.getId() + ", ");
+                }
+                System.out.print("), ");
+            }
+            System.out.println();
+        }
     }
 
     public void printClusters() {
         System.out.println("MP-PPRL with dynamic pivots in metric space results");
         for (Pivot p : pivotElementsMap.keySet()) {
             System.out.print("Pivot's cluster: " );
-            for (RecordIdentifier r : p.getCluster().recordIdentifiersSet()) {
+            for (BloomFilterEncodedRecord r : p.getCluster().bloomFilterEncodedRecordsSet()) {
                 System.out.print(r.getId() + "(p: " + r.getParty().getRecordsSize() + ")" + " - ");
             }
             System.out.println();
             System.out.println("Clusters");
             for (Cluster c : pivotElementsMap.get(p)) {
                 System.out.print("Cluster: ");
-                for (RecordIdentifier r : c.recordIdentifiersSet()) {
+                for (BloomFilterEncodedRecord r : c.bloomFilterEncodedRecordsSet()) {
                     System.out.print(r.getId() + "(p: " + r.getParty().getRecordsSize() + ")" + " - ");
                 }
                 System.out.println();

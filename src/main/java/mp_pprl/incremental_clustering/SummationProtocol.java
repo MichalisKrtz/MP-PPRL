@@ -1,20 +1,20 @@
 package mp_pprl.incremental_clustering;
 
 import mp_pprl.core.Party;
-import mp_pprl.core.domain.RecordIdentifier;
+import mp_pprl.core.BloomFilterEncodedRecord;
 import mp_pprl.core.encoding.CountingBloomFilter;
 
 import java.util.List;
 import java.util.Random;
 
 public class SummationProtocol {
-    public static CountingBloomFilter execute(List<RecordIdentifier> recordIdentifiers, int vectorSize) {
+    public static CountingBloomFilter execute(List<BloomFilterEncodedRecord> bloomFilterEncodedRecords, int vectorSize) {
         int[] startingVector = generateRandomVector(vectorSize);
         CountingBloomFilter countingBloomFilter = new CountingBloomFilter(startingVector);
 
-        for (RecordIdentifier recordIdentifier : recordIdentifiers) {
-            Party party = recordIdentifier.getParty();
-            int recordId = recordIdentifier.getId();
+        for (BloomFilterEncodedRecord bloomFilterEncodedRecord : bloomFilterEncodedRecords) {
+            Party party = bloomFilterEncodedRecord.getParty();
+            int recordId = bloomFilterEncodedRecord.getId();
             party.addToCountingBloomFilter(countingBloomFilter, recordId);
         }
 
