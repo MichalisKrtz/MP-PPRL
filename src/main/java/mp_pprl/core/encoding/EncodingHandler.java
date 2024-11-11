@@ -26,15 +26,15 @@ public class EncodingHandler {
 
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(message);
-            byte[] hash = md.digest();
 
-            int result = 0;
-            for (byte b : hash) {
-                result += b;
+            byte[] hashBytes = md.digest();
+
+            long combinedHash = 0;
+            for (int i = 0; i < 8; i++) {
+                combinedHash = (combinedHash << 8) | (hashBytes[i] & 0xff);
             }
-            if (result < 0) result *= -1;
 
-            return result % bloomFilterLength;
+            return Math.abs((int) combinedHash % bloomFilterLength);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }

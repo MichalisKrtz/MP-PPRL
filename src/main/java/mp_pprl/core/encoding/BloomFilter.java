@@ -28,8 +28,6 @@ public class BloomFilter {
         }
     }
 
-
-
     public byte[] getVector() {
         return vector;
     }

@@ -13,8 +13,8 @@ public class SummationProtocol {
         CountingBloomFilter countingBloomFilter = new CountingBloomFilter(startingVector);
 
         for (BloomFilterEncodedRecord bloomFilterEncodedRecord : bloomFilterEncodedRecords) {
-            Party party = bloomFilterEncodedRecord.getParty();
-            int recordId = bloomFilterEncodedRecord.getId();
+            Party party = bloomFilterEncodedRecord.party();
+            String recordId = bloomFilterEncodedRecord.id();
             party.addToCountingBloomFilter(countingBloomFilter, recordId);
         }
 
