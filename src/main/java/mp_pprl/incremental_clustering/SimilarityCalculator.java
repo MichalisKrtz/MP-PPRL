@@ -1,6 +1,6 @@
 package mp_pprl.incremental_clustering;
 
-import mp_pprl.core.domain.RecordIdentifier;
+import mp_pprl.core.BloomFilterEncodedRecord;
 import mp_pprl.core.encoding.CountingBloomFilter;
 import mp_pprl.core.graph.Cluster;
 
@@ -9,15 +9,15 @@ import java.util.List;
 
 public class SimilarityCalculator {
     /*This method uses the secure summation protocol to create counting bloom filters and then calculates the metric.*/
-    public static double averageSimilaritySecure(Cluster cluster, RecordIdentifier recordIdentifier, int bloomFilterLength) {
+    public static double averageSimilaritySecure(Cluster cluster, BloomFilterEncodedRecord bloomFilterEncodedRecord, int bloomFilterLength) {
         List<CountingBloomFilter> countingBloomFilterList = new ArrayList<>();
-        for (RecordIdentifier clusteredRecordIdentifier : cluster.recordIdentifiersSet()) {
-            List<RecordIdentifier> recordIdentifiersForSummation = new ArrayList<>();
+        for (BloomFilterEncodedRecord clusteredBloomFilterEncodedRecord : cluster.bloomFilterEncodedRecordsSet()) {
+            List<BloomFilterEncodedRecord> bloomFilterEncodedRecordsForSummation = new ArrayList<>();
             // Add one clustered record.
-            recordIdentifiersForSummation.add(clusteredRecordIdentifier);
+            bloomFilterEncodedRecordsForSummation.add(clusteredBloomFilterEncodedRecord);
             // Add the record from the new singleton cluster.
-            recordIdentifiersForSummation.add(recordIdentifier);
-            CountingBloomFilter cbf = SummationProtocol.execute(recordIdentifiersForSummation, bloomFilterLength);
+            bloomFilterEncodedRecordsForSummation.add(bloomFilterEncodedRecord);
+            CountingBloomFilter cbf = SummationProtocol.execute(bloomFilterEncodedRecordsForSummation, bloomFilterLength);
             countingBloomFilterList.add(cbf);
         }
         double sumSimilarity = 0;
@@ -28,14 +28,14 @@ public class SimilarityCalculator {
         return sumSimilarity / countingBloomFilterList.size();
     }
 
-    public static double averageSimilarity(Cluster cluster, RecordIdentifier recordIdentifier) {
+    public static double averageSimilarity(Cluster cluster, BloomFilterEncodedRecord bloomFilterEncodedRecord) {
         double sumSimilarity = 0;
-        for (RecordIdentifier clusteredRecord : cluster.recordIdentifiersSet()) {
+        for (BloomFilterEncodedRecord clusteredRecord : cluster.bloomFilterEncodedRecordsSet()) {
 
-            sumSimilarity += calculateSimilarity(recordIdentifier, clusteredRecord);
+            sumSimilarity += calculateSimilarity(bloomFilterEncodedRecord, clusteredRecord);
         }
 
-        return sumSimilarity / cluster.recordIdentifiersSet().size();
+        return sumSimilarity / cluster.bloomFilterEncodedRecordsSet().size();
     }
 
     private static double calculateDiceCoefficient(CountingBloomFilter countingBloomFilter) {
@@ -53,9 +53,9 @@ public class SimilarityCalculator {
         return (double) (countingBloomFilter.getNumberOfBloomFilters() * numberOfMatches) / cbfSum;
     }
 
-    private static double calculateSimilarity(RecordIdentifier r1, RecordIdentifier r2) {
-        byte[] bf1 = r1.getBloomFilter().getVector();
-        byte[] bf2 = r2.getBloomFilter().getVector();
+    private static double calculateSimilarity(BloomFilterEncodedRecord r1, BloomFilterEncodedRecord r2) {
+        byte[] bf1 = r1.bloomFilter().getVector();
+        byte[] bf2 = r2.bloomFilter().getVector();
         int[] cbf = new int[bf1.length];
         for (int i = 0; i < cbf.length; i++) {
             cbf[i] = bf1[i] + bf2[i];

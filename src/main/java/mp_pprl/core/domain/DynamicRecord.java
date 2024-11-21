@@ -8,7 +8,6 @@ import java.util.Set;
 
 public class DynamicRecord implements Record {
     private final Map<String, DynamicValue> map;
-    private BloomFilter bloomFilter;
 
     public DynamicRecord() {
         map = new HashMap<>();
@@ -42,18 +41,9 @@ public class DynamicRecord implements Record {
     @Override
     public void printData() {
         for (String key : map.keySet()) {
-            System.out.println(key + ": " + map.get(key).getValueAsString());
+            System.out.print(key + ": " + map.get(key).getValueAsString() + " | ");
         }
-    }
-
-    @Override
-    public BloomFilter getBloomFilter() {
-        return bloomFilter;
-    }
-
-    @Override
-    public void setBloomFilter(BloomFilter bloomFilter) {
-        this.bloomFilter = bloomFilter;
+        System.out.println();
     }
 
 }

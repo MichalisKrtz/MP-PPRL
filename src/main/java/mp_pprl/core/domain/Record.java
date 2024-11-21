@@ -13,9 +13,5 @@ public interface Record {
 
     void remove(String key);
 
-    BloomFilter getBloomFilter();
-
-    void setBloomFilter(BloomFilter bloomFilter);
-
     void printData();
 }

@@ -5,9 +5,12 @@ import mp_pprl.core.graph.Cluster;
 import java.util.*;
 
 public class Indexer {
-    private int numberOfReadRecords = 0;
+    private int numberOfIndexedRecords = 0;
     private int intersections = 0;
     private final MetricSpace metricSpace;
+    long elapsedTime = 0;
+    long eT1 = 0, eT2 = 0, eT3 = 0, eT4 = 0;
+    int totalDistanceCalls = 0;
 
     public Indexer(MetricSpace metricSpace) {
         this.metricSpace = metricSpace;
@@ -45,15 +48,76 @@ public class Indexer {
         clusters.remove(cluster2);
     }
 
+    public void selectFarAwayPivots(Set<Cluster> clusters, int m) {
+        Set<Pivot> pivots = new HashSet<>(); // P is initially empty
+        List<Cluster> clustersUsed = new ArrayList<>();
+
+        // Step 2: Pick a random record x from Re
+        Cluster x = clusters.iterator().next();
+
+        // Step 3: Find p ∈ Re such that d_h(x, p) > d_h(x, p') for all p' ∈ Re
+        Cluster firstCandidate = null;
+        double maxDistance = -1;
+        for (Cluster candidate : clusters) {
+            double distance = MetricSpace.distance(x, candidate);
+            if (distance > maxDistance) {
+                maxDistance = distance;
+                firstCandidate = candidate;
+            }
+        }
+        pivots.add(new Pivot(firstCandidate)); // Add p to P
+        clustersUsed.add(firstCandidate);
+
+        // Step 5: While |P| < m, keep selecting pivots
+        while (pivots.size() < m) {
+            Cluster bestCandidate = null;
+            double maxMinDistanceSum = -1;
+
+            // Step 6: Find p ∈ Re that maximizes the sum of distances to current pivots
+            for (Cluster candidate : clusters) {
+                double candidateMinDistanceSum = 0;
+                for (Pivot pivot : pivots) {
+                    candidateMinDistanceSum += MetricSpace.distance(candidate, pivot.getCluster());
+                }
+
+                // Check if this candidate has a higher sum of distances than the current best
+                if (candidateMinDistanceSum > maxMinDistanceSum) {
+                    maxMinDistanceSum = candidateMinDistanceSum;
+                    bestCandidate = candidate;
+                }
+            }
+
+            // Step 8: Add the chosen candidate to the set of pivots
+            pivots.add(new Pivot(bestCandidate));
+            clustersUsed.add(bestCandidate);
+        }
+
+        for (Cluster clusterUsed : clustersUsed) {
+            clusters.remove(clusterUsed);
+        }
+        // Step 9: Return the set of selected pivots
+        for (Pivot pivot : pivots) {
+            metricSpace.pivotElementsMap.put(pivot, new ArrayList<>());
+            metricSpace.pivotElementsDistanceMap.put(pivot, new ArrayList<>());
+        }
+    }
+
     public void assignElementsToPivots(Set<Cluster> dataset, double maximalIntersection) {
-        long startT1 = System.currentTimeMillis();
+        System.out.println("Dataset size: " + dataset.size());
+        System.out.println("Number of pivots: " + metricSpace.pivotElementsMap.size());
+
         for (Cluster cluster : dataset) {
-            numberOfReadRecords++;
+            numberOfIndexedRecords++;
             double minDist = Double.MAX_VALUE;
             Pivot bestPivot = null;
 
+            long s1 = System.currentTimeMillis();
             for (Pivot p : metricSpace.pivotElementsMap.keySet()) {
+                long s2 = System.currentTimeMillis();
                 double dist = MetricSpace.distance(cluster, p.getCluster());
+                totalDistanceCalls++;
+                long e2 = System.currentTimeMillis();
+                eT2 += (e2 - s2);
                 if (dist <= p.getRadius()) {
                     intersections++;
                 }
@@ -62,6 +126,8 @@ public class Indexer {
                     bestPivot = p;
                 }
             }
+            long e1 = System.currentTimeMillis();
+            eT1 += (e1 - s1);
 
             if (bestPivot == null) {
                 continue;
@@ -104,22 +170,22 @@ public class Indexer {
             while (iter.hasNext()) {
                 Cluster cluster = iter.next();
                 double newDistance = MetricSpace.distance(cluster, newPivot.getCluster());
-                double oldDistance = MetricSpace.distance(cluster, p.getCluster());
+                int elementIndex = metricSpace.pivotElementsMap.get(p).indexOf(cluster);
+                double oldDistance =  metricSpace.pivotElementsDistanceMap.get(p).get(elementIndex);
+
                 if (newDistance < oldDistance) {
                     metricSpace.pivotElementsMap.get(newPivot).add(cluster);
                     metricSpace.pivotElementsDistanceMap.get(newPivot).add(newDistance);
-                    if (newPivot.getRadius() < metricSpace.pivotElementsDistanceMap.get(newPivot).getLast()) {
-                        newPivot.setRadius(metricSpace.pivotElementsDistanceMap.get(newPivot).getLast());
+                    if (newPivot.getRadius() < newDistance) {
+                        newPivot.setRadius(newDistance);
                     }
 
-                    int elementIndex = metricSpace.pivotElementsMap.get(p).indexOf(cluster);
-                    double oldDist =  metricSpace.pivotElementsDistanceMap.get(p).get(elementIndex);
                     metricSpace.pivotElementsDistanceMap.get(p).remove(elementIndex);
                     iter.remove();
 //                    metricSpace.pivotElementsMap.get(p).remove(elementIndex);
                     if (metricSpace.pivotElementsDistanceMap.get(p).isEmpty()) {
                         p.setRadius(0);
-                    } else if (p.getRadius() == oldDist) {
+                    } else {
                         p.setRadius(Collections.max(metricSpace.pivotElementsDistanceMap.get(p)));
                     }
 
@@ -127,13 +193,16 @@ public class Indexer {
             }
         }
 
+//        //Recalculate intersections
+//        long start, end;
+//        start = System.currentTimeMillis();
 //        intersections = 0;
 //        List<Cluster> allClusters = new ArrayList<>();
 //        for (List<Cluster> clusterList : metricSpace.pivotElementsMap.values()) {
 //            allClusters.addAll(clusterList);
 //        }
-//
 //        for (Pivot p : metricSpace.pivotElementsMap.keySet()) {
+//            //Increment once because the pivot's record, intersects the pivot radius
 //            intersections++;
 //            for (Cluster cluster : allClusters) {
 //                double dist = MetricSpace.distance(cluster, p.getCluster());
@@ -142,6 +211,8 @@ public class Indexer {
 //                }
 //            }
 //        }
+//        end = System.currentTimeMillis();
+//        elapsedTime += end - start;
     }
 
     private Pivot maxCardinalityPivot() {
@@ -161,7 +232,7 @@ public class Indexer {
     }
 
     private double overlap() {
-        return (double) intersections / (numberOfReadRecords * metricSpace.pivotElementsMap.size());
+        return (double) intersections / (numberOfIndexedRecords * metricSpace.pivotElementsMap.size());
 
     }
 

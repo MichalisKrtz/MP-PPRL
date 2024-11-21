@@ -1,75 +1,77 @@
 package mp_pprl.incremental_clustering;
 
-import mp_pprl.core.domain.RecordIdentifier;
-import mp_pprl.core.encoding.EncodingHandler;
+import mp_pprl.PPRLProtocol;
+import mp_pprl.RecordIdentifier;
+import mp_pprl.RecordIdentifierCluster;
+import mp_pprl.core.BloomFilterEncodedRecord;
 import mp_pprl.core.graph.Edge;
 import mp_pprl.core.graph.Cluster;
 import mp_pprl.core.graph.WeightedGraph;
-import mp_pprl.incremental_clustering.optimization.Hungarian;
 import mp_pprl.incremental_clustering.optimization.HungarianAlgorithm;
 import mp_pprl.core.Party;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
-public class EarlyMappingClusteringProtocol {
+public class EarlyMappingClusteringProtocol implements PPRLProtocol {
+    private final double similarityThreshold;
     private final List<Party> parties;
     private final Set<String> unionOfBlocks;
-    private final double similarityThreshold;
     private final int minimumSubsetSize;
     private final int bloomFilterLength;
+    private final boolean enhancedPrivacy;
+    private final Set<Cluster> finalClusters;
 
-    public EarlyMappingClusteringProtocol(List<Party> parties, Set<String> unionOfBlocks, double similarityThreshold, int minimumSubsetSize, int bloomFilterLength) {
+    public EarlyMappingClusteringProtocol(List<Party> parties, Set<String> unionOfBlocks, double similarityThreshold, int minimumSubsetSize, int bloomFilterLength, boolean enhancedPrivacy) {
         this.parties = parties;
         this.unionOfBlocks = unionOfBlocks;
         this.similarityThreshold = similarityThreshold;
         this.minimumSubsetSize = minimumSubsetSize;
         this.bloomFilterLength = bloomFilterLength;
+        this.enhancedPrivacy = enhancedPrivacy;
+        this.finalClusters = new HashSet<>();
     }
 
-    public Set<Cluster> execute(boolean enhancedPrivacy) {
+    public void execute() {
         // Initialization
         WeightedGraph graph = new WeightedGraph();
-        Set<Cluster> finalClusters = new HashSet<>();
         // Order parties based on database size
         orderPartiesDesc();
         // Iterate blocks
         System.out.println("Number of blocks: " + unionOfBlocks.size());
-        int currentBlock = 0;
         for (String blockKey : unionOfBlocks) {
-            System.out.println("Current Block: " + currentBlock);
-            currentBlock++;
             WeightedGraph blockGraph = new WeightedGraph();
             for (int i = 0; i < parties.size(); i++) {
                 if(enhancedPrivacy) {
                     List<Party> participantParties = getParticipantParties(i);
-                    encodeBlockOfParties(participantParties, blockKey);
+//                    encodeBlockOfParties(participantParties, blockKey);
                 }
 
-                if (!parties.get(i).getRecordIdentifierGroups().containsKey(blockKey)) {
+                if (!parties.get(i).getBloomFilterEncodedRecordGroups().containsKey(blockKey)) {
                     continue;
                 }
 
-                List<RecordIdentifier> block = parties.get(i).getRecordIdentifierGroups().get(blockKey);
+                List<BloomFilterEncodedRecord> block = parties.get(i).getBloomFilterEncodedRecordGroups().get(blockKey);
 
                 if (blockGraph.getClusters().isEmpty()) {
-                    for (RecordIdentifier recordIdentifier : block) {
-                        Cluster cluster = new Cluster(recordIdentifier);
+                    for (BloomFilterEncodedRecord bloomFilterEncodedRecord : block) {
+                        Cluster cluster = new Cluster(bloomFilterEncodedRecord);
                         blockGraph.addCluster(cluster);
                     }
                     continue;
                 }
 
                 Set<Cluster> newClusterSet = new HashSet<>();
-                for (RecordIdentifier recordIdentifier : block) {
-                    Cluster newCluster = new Cluster(recordIdentifier);
+                for (BloomFilterEncodedRecord bloomFilterEncodedRecord : block) {
+                    Cluster newCluster = new Cluster(bloomFilterEncodedRecord);
                     newClusterSet.add(newCluster);
                     for (Cluster cluster : blockGraph.getClusters()) {
                         double similarity;
                         if (enhancedPrivacy) {
-                            similarity = SimilarityCalculator.averageSimilaritySecure(cluster, recordIdentifier, bloomFilterLength);
+                            similarity = SimilarityCalculator.averageSimilaritySecure(cluster, bloomFilterEncodedRecord, bloomFilterLength);
                         } else {
-                            similarity = SimilarityCalculator.averageSimilarity(cluster, recordIdentifier);
+                            similarity = SimilarityCalculator.averageSimilarity(cluster, bloomFilterEncodedRecord);
                         }
 
                         if (similarity >= similarityThreshold) {
@@ -81,7 +83,6 @@ public class EarlyMappingClusteringProtocol {
                 blockGraph.addClusters(newClusterSet);
                 // Find optimal edges.
                 Set<Edge> optimalEdges = HungarianAlgorithm.computeAssignments(blockGraph.getEdges(), true);
-//                Set<Edge> optimalEdges = Hungarian.computeAssignments(blockGraph.getEdges(), true);
                 // Prune edges that are not optimal.
                 blockGraph.getEdges().removeIf(e -> !optimalEdges.contains(e));
                 // Merge clusters.
@@ -92,27 +93,27 @@ public class EarlyMappingClusteringProtocol {
         }
 
         for (Cluster cluster : graph.getClusters()) {
-            if (cluster.recordIdentifiersSet().size() >= minimumSubsetSize) {
+            if (cluster.bloomFilterEncodedRecordsSet().size() >= minimumSubsetSize) {
                 finalClusters.add(cluster);
             }
         }
-
-        return finalClusters;
     }
 
-    private void encodeParties(List<Party> participantParties) {
-        EncodingHandler encodingHandler = new EncodingHandler();
-        for (Party party : participantParties) {
-            party.encodeRecords(encodingHandler);
-        }
+    public Set<RecordIdentifierCluster> getResults() {
+        return finalClusters.stream()
+                .map(cluster -> cluster.bloomFilterEncodedRecordsSet().stream()
+                        .map(encodedRecord -> new RecordIdentifier(encodedRecord.party(), encodedRecord.id()))
+                        .collect(Collectors.toSet()))
+                .map(RecordIdentifierCluster::new)
+                .collect(Collectors.toSet());
     }
 
-    private void encodeBlockOfParties(List<Party> participantParties, String block) {
-        EncodingHandler encodingHandler = new EncodingHandler();
-        for (Party party : participantParties) {
-            party.encodeRecordsOfBlock(encodingHandler, block);
-        }
-    }
+//    private void encodeBlockOfParties(List<Party> participantParties, String block) {
+//        EncodingHandler encodingHandler = new EncodingHandler();
+//        for (Party party : participantParties) {
+//            party.encodeRecordsOfBlock(encodingHandler, block);
+//        }
+//    }
 
     private List<Party> getParticipantParties(int indexOfCurrentParty) {
         ArrayList<Party> participantParties = new ArrayList<>();
