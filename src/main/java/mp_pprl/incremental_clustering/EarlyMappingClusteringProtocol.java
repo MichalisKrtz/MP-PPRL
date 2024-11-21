@@ -4,7 +4,6 @@ import mp_pprl.PPRLProtocol;
 import mp_pprl.RecordIdentifier;
 import mp_pprl.RecordIdentifierCluster;
 import mp_pprl.core.BloomFilterEncodedRecord;
-import mp_pprl.core.encoding.EncodingHandler;
 import mp_pprl.core.graph.Edge;
 import mp_pprl.core.graph.Cluster;
 import mp_pprl.core.graph.WeightedGraph;
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
 
 
 public class EarlyMappingClusteringProtocol implements PPRLProtocol {
-    private static final double SIMILARITY_THRESHOLD = 0.85;
+    private final double similarityThreshold;
     private final List<Party> parties;
     private final Set<String> unionOfBlocks;
     private final int minimumSubsetSize;
@@ -24,9 +23,10 @@ public class EarlyMappingClusteringProtocol implements PPRLProtocol {
     private final boolean enhancedPrivacy;
     private final Set<Cluster> finalClusters;
 
-    public EarlyMappingClusteringProtocol(List<Party> parties, Set<String> unionOfBlocks, int minimumSubsetSize, int bloomFilterLength, boolean enhancedPrivacy) {
+    public EarlyMappingClusteringProtocol(List<Party> parties, Set<String> unionOfBlocks, double similarityThreshold, int minimumSubsetSize, int bloomFilterLength, boolean enhancedPrivacy) {
         this.parties = parties;
         this.unionOfBlocks = unionOfBlocks;
+        this.similarityThreshold = similarityThreshold;
         this.minimumSubsetSize = minimumSubsetSize;
         this.bloomFilterLength = bloomFilterLength;
         this.enhancedPrivacy = enhancedPrivacy;
@@ -74,7 +74,7 @@ public class EarlyMappingClusteringProtocol implements PPRLProtocol {
                             similarity = SimilarityCalculator.averageSimilarity(cluster, bloomFilterEncodedRecord);
                         }
 
-                        if (similarity >= SIMILARITY_THRESHOLD) {
+                        if (similarity >= similarityThreshold) {
                             blockGraph.addEdge(cluster, newCluster, similarity);
                         }
                     }

@@ -11,15 +11,18 @@ import mp_pprl.incremental_clustering.optimization.HungarianAlgorithm;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MetricSpaceProtocol implements PPRLProtocol {
     private final List<Party> parties;
     MetricSpace metricSpace;
-    private static final double MAXIMAL_INTERSECTION = 0.003;
-    private static final double SIMILARITY_THRESHOLD = 0.9;
+    private final double maximalIntersection;
+    private final double similarityThreshold;
 
-    public MetricSpaceProtocol(List<Party> parties) {
+    public MetricSpaceProtocol(List<Party> parties, double maximalIntersection, double similarityThreshold) {
         this.parties = parties;
+        this.maximalIntersection = maximalIntersection;
+        this.similarityThreshold = similarityThreshold;
         this.metricSpace = new MetricSpace();
     }
 
@@ -29,15 +32,14 @@ public class MetricSpaceProtocol implements PPRLProtocol {
         Set<Cluster> firstDSClusters = convertRecordsToSingletonClusters(parties.getFirst().getBloomFilterEncodedRecords());
 
         // INDEXING (first dataset)
-        indexer.selectFarAwayPivots(firstDSClusters, 40);
-        indexer.assignElementsToPivots(firstDSClusters, MAXIMAL_INTERSECTION);
+        indexer.selectFarAwayPivots(firstDSClusters, 50);
+        indexer.assignElementsToPivots(firstDSClusters, maximalIntersection);
 
         for (int i = 1; i < parties.size(); i++) {
             // LINKING
             Set<Edge> edges = new HashSet<>();
             Set<Cluster> qClusters = convertRecordsToSingletonClusters(parties.get(i).getBloomFilterEncodedRecords());
             // Iterate query records
-            long startTimeBig = System.currentTimeMillis();
             for (Cluster qSingletonCluster : qClusters) {
                 double qRecordRadius = queryRecordRadius(qSingletonCluster.bloomFilterEncodedRecordsSet().iterator().next());
                 // Iterate Pivots
@@ -76,18 +78,38 @@ public class MetricSpaceProtocol implements PPRLProtocol {
 
             // INDEXING
             // Index the remaining query records that where not linked with any cluster
-            indexer.assignElementsToPivots(qClusters, MAXIMAL_INTERSECTION);
+            indexer.assignElementsToPivots(qClusters, maximalIntersection);
         }
     }
 
     public Set<RecordIdentifierCluster> getResults() {
-        return metricSpace.pivotElementsMap.values().stream()
-                .flatMap(List::stream)
-                .map(cluster -> cluster.bloomFilterEncodedRecordsSet().stream()
-                        .map(encodeRecord -> new RecordIdentifier(encodeRecord.party(), encodeRecord.id()))
-                        .collect(Collectors.toSet()))
-                .map(RecordIdentifierCluster::new)
+        Set<RecordIdentifierCluster> results = new HashSet<>();
+
+        // Iterate over each entry in the map
+        for (Map.Entry<Pivot, List<Cluster>> entry : metricSpace.pivotElementsMap.entrySet()) {
+            Pivot pivot = entry.getKey();
+            List<Cluster> clusters = entry.getValue();
+
+            // Process the Pivot's own cluster
+            Cluster pivotCluster = pivot.getCluster();  // Assuming Pivot has a getCluster() method
+            results.add(convertClusterToRecordIdentifierCluster(pivotCluster));
+
+            // Process each cluster in the List<Cluster>
+            for (Cluster cluster : clusters) {
+                results.add(convertClusterToRecordIdentifierCluster(cluster));
+            }
+        }
+
+        return results;
+    }
+
+    // Helper method to convert a Cluster to a RecordIdentifierCluster
+    private RecordIdentifierCluster convertClusterToRecordIdentifierCluster(Cluster cluster) {
+        Set<RecordIdentifier> recordIdentifiers = cluster.bloomFilterEncodedRecordsSet().stream()
+                .map(encodedRecord -> new RecordIdentifier(encodedRecord.party(), encodedRecord.id()))
                 .collect(Collectors.toSet());
+
+        return new RecordIdentifierCluster(recordIdentifiers);
     }
 
     // This method will work correctly only if the first cluster of the edges is either a pivot's cluster or a cluster
@@ -119,7 +141,7 @@ public class MetricSpaceProtocol implements PPRLProtocol {
             bitsSetToOne += cell;
         }
 
-        return bitsSetToOne * ((1 - SIMILARITY_THRESHOLD) / SIMILARITY_THRESHOLD);
+        return bitsSetToOne * ((1 - similarityThreshold) / similarityThreshold);
     }
 
     private boolean queryRecordOverlapsWithPivot(Pivot pivot, double pivotQRecordDistance, double qRecordRadius) {
