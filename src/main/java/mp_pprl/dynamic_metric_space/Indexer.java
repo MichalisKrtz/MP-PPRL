@@ -8,9 +8,7 @@ public class Indexer {
     private int numberOfIndexedRecords = 0;
     private int intersections = 0;
     private final MetricSpace metricSpace;
-    long elapsedTime = 0;
-    long eT1 = 0, eT2 = 0, eT3 = 0, eT4 = 0;
-    int totalDistanceCalls = 0;
+
 
     public Indexer(MetricSpace metricSpace) {
         this.metricSpace = metricSpace;
@@ -111,13 +109,8 @@ public class Indexer {
             double minDist = Double.MAX_VALUE;
             Pivot bestPivot = null;
 
-            long s1 = System.currentTimeMillis();
             for (Pivot p : metricSpace.pivotElementsMap.keySet()) {
-                long s2 = System.currentTimeMillis();
                 double dist = MetricSpace.distance(cluster, p.getCluster());
-                totalDistanceCalls++;
-                long e2 = System.currentTimeMillis();
-                eT2 += (e2 - s2);
                 if (dist <= p.getRadius()) {
                     intersections++;
                 }
@@ -126,8 +119,6 @@ public class Indexer {
                     bestPivot = p;
                 }
             }
-            long e1 = System.currentTimeMillis();
-            eT1 += (e1 - s1);
 
             if (bestPivot == null) {
                 continue;

@@ -15,29 +15,30 @@ public class Application {
     // Parameters
     private static final int bloomFilterLength = 1000;
     private static final int numberOfHashFunctions = 30;
-//    private static final String[] quasiIdentifiers = {"first_name", "last_name"};
+//    private static final String[] quasiIdentifiers = {"id", "first_name", "last_name"};
     private static final String[] quasiIdentifiers = {"id", "first_name", "last_name", "middle_name", "address", "age"};
     private static final String[] blockingKeyValues = {"first_name", "last_name"};
     private static final int minimumSubsetSize = 3;
     // Databases
     private final static String[] dbPaths = {
-            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/MP_A_10000.db",
-            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/MP_B_5_10000.db",
-            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/MP_C_5_10000.db",
-            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/MP_D_5_10000.db",
-            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/MP_E_5_10000.db",
+            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/MP_10000/MP_A_10000.db",
+            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/MP_10000/MP_B_1_10000.db",
+            "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/MP_10000/MP_C_1_10000.db",
     };
 
     public static void run() {
+        long startTime = System.currentTimeMillis();
 //        runSoundexBasedProtocol();
-        runEarlyMappingClusteringProtocol(false);
+        runEarlyMappingClusteringProtocol(true);
 //        runMetricSpaceProtocol();
+        long endTime = System.currentTimeMillis();
+        System.out.println("Time taken: " + (endTime - startTime) + "ms");
     }
 
     public static void runSoundexBasedProtocol() {
         System.out.println("Soundex Based Protocol running...");
         double noisePercentage = 0;
-        int charsToTruncate = 3;
+        int charsToTruncate = 0;
 
         List<Party> parties = loadRecordsToParties();
         int numberOfRecords = parties.getFirst().getRecordsSize();
@@ -54,15 +55,15 @@ public class Application {
 
     public static void runEarlyMappingClusteringProtocol(boolean enhancedPrivacy) {
         System.out.println("Early Mapping Clustering Protocol running...");
-        double similarityThreshold = 0.75;
+        double similarityThreshold = 0.8;
 
         List<Party> parties = loadRecordsToParties();
         encodePartyRecordsToBloomFilters(parties);
         groupPartyRecords(parties);
 
         System.out.println("Early mapping clustering protocol...");
-        Set<String> unionOfBlocks = getUnionOfBlocks(parties);
-        EarlyMappingClusteringProtocol clusteringProtocol = new EarlyMappingClusteringProtocol(parties, unionOfBlocks, similarityThreshold, minimumSubsetSize, bloomFilterLength, enhancedPrivacy);
+        Set<String> unionOfBKVs = getUnionOfBKVs(parties);
+        EarlyMappingClusteringProtocol clusteringProtocol = new EarlyMappingClusteringProtocol(parties, unionOfBKVs, similarityThreshold, minimumSubsetSize, bloomFilterLength, enhancedPrivacy);
         PerformanceMetrics metrics = new PerformanceMetrics(clusteringProtocol, parties.size(),parties.getFirst().getRecordsSize(), 0.25);
         printProtocolResults(metrics);
     }
@@ -70,7 +71,7 @@ public class Application {
     public static void runMetricSpaceProtocol() {
         System.out.println("Metric Space Protocol running...");
         double similarityThreshold = 0.85;
-        double maximalIntersection = 0.004;
+        double maximalIntersection = 0.003;
 
         List<Party> parties = loadRecordsToParties();
         encodePartyRecordsToBloomFilters(parties);
@@ -144,7 +145,7 @@ public class Application {
         }
     }
 
-    private static Set<String> getUnionOfBlocks(List<Party> parties) {
+    private static Set<String> getUnionOfBKVs(List<Party> parties) {
         Set<String> blocks = new HashSet<>();
         for (Party party : parties) {
             blocks.addAll(party.getBloomFilterEncodedRecordGroups().keySet());
@@ -160,6 +161,6 @@ public class Application {
         System.out.println("Precision: " + metrics.calculatePrecision());
         System.out.println("Recall: " + metrics.calculateRecall());
         System.out.println("F1: " + metrics.calculateF1());
-        System.out.println("Early Mapping Clustering Protocol finished successfully");
+        System.out.println("Protocol finished successfully");
     }
 }

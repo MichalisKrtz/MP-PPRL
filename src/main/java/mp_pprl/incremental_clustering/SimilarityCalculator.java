@@ -54,8 +54,8 @@ public class SimilarityCalculator {
     }
 
     private static double calculateSimilarity(BloomFilterEncodedRecord r1, BloomFilterEncodedRecord r2) {
-        byte[] bf1 = r1.bloomFilter().getVector();
-        byte[] bf2 = r2.bloomFilter().getVector();
+        byte[] bf1 = r1.getBloomFilter().getVector();
+        byte[] bf2 = r2.getBloomFilter().getVector();
         int[] cbf = new int[bf1.length];
         for (int i = 0; i < cbf.length; i++) {
             cbf[i] = bf1[i] + bf2[i];

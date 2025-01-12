@@ -20,7 +20,7 @@ public class MetricSpace {
         int hammingDistanceSum = 0;
         for (BloomFilterEncodedRecord r1 : c1.bloomFilterEncodedRecordsSet()) {
             for (BloomFilterEncodedRecord r2 : c2.bloomFilterEncodedRecordsSet()) {
-                hammingDistanceSum += calculateHammingDistance(r1.bloomFilter().getVector(), r2.bloomFilter().getVector());
+                hammingDistanceSum += calculateHammingDistance(r1.getBloomFilter().getVector(), r2.getBloomFilter().getVector());
             }
         }
 
@@ -29,7 +29,7 @@ public class MetricSpace {
 
     public static double distance(BloomFilterEncodedRecord r1, BloomFilterEncodedRecord r2) {
 
-        return calculateHammingDistance(r1.bloomFilter().getVector(), r2.bloomFilter().getVector());
+        return calculateHammingDistance(r1.getBloomFilter().getVector(), r2.getBloomFilter().getVector());
     }
 
     private static int calculateHammingDistance(byte[] bf1, byte[] bf2) {
@@ -44,16 +44,16 @@ public class MetricSpace {
     public void printMetricSpace() {
         System.out.println("PIVOTS = " + pivotElementsMap.size());
         for (Pivot p : pivotElementsMap.keySet()) {
-            System.out.print(p.getCluster().bloomFilterEncodedRecordsSet().iterator().next().id() + ", ");
+            System.out.print(p.getCluster().bloomFilterEncodedRecordsSet().iterator().next().getId() + ", ");
         }
         System.out.println();
 
         for (Map.Entry<Pivot, List<Cluster>> entry: pivotElementsMap.entrySet()) {
-            System.out.print(entry.getKey().getCluster().bloomFilterEncodedRecordsSet().iterator().next().id() + ": ");
+            System.out.print(entry.getKey().getCluster().bloomFilterEncodedRecordsSet().iterator().next().getId() + ": ");
             for (Cluster elementsCluster : entry.getValue()) {
                 System.out.print("(");
                 for (BloomFilterEncodedRecord element : elementsCluster.bloomFilterEncodedRecordsSet()) {
-                    System.out.print(element.id() + ", ");
+                    System.out.print(element.getId() + ", ");
                 }
                 System.out.print("), ");
             }
@@ -69,13 +69,13 @@ public class MetricSpace {
             if (counter > 200) break;
             System.out.print("Pivot's cluster: ");
             for (BloomFilterEncodedRecord r : p.getCluster().bloomFilterEncodedRecordsSet()) {
-                System.out.print("P" + r.party().id + " id " + r.id() + " | ");
+                System.out.print("P" + r.getParty().id + " id " + r.getId() + " | ");
             }
             System.out.println();
             for (Cluster c : pivotElementsMap.get(p)) {
                 System.out.print("----Cluster: ");
                 for (BloomFilterEncodedRecord r : c.bloomFilterEncodedRecordsSet()) {
-                    System.out.print("P" + r.party().id + " id " + r.id() + " | ");
+                    System.out.print("P" + r.getParty().id + " id " + r.getId() + " | ");
                 }
                 System.out.println();
             }

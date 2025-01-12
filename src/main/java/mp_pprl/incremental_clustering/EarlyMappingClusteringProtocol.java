@@ -4,6 +4,7 @@ import mp_pprl.PPRLProtocol;
 import mp_pprl.RecordIdentifier;
 import mp_pprl.RecordIdentifierCluster;
 import mp_pprl.core.BloomFilterEncodedRecord;
+import mp_pprl.core.encoding.EncodingHandler;
 import mp_pprl.core.graph.Edge;
 import mp_pprl.core.graph.Cluster;
 import mp_pprl.core.graph.WeightedGraph;
@@ -17,15 +18,15 @@ import java.util.stream.Collectors;
 public class EarlyMappingClusteringProtocol implements PPRLProtocol {
     private final double similarityThreshold;
     private final List<Party> parties;
-    private final Set<String> unionOfBlocks;
+    private final Set<String> unionOfBKVs;
     private final int minimumSubsetSize;
     private final int bloomFilterLength;
     private final boolean enhancedPrivacy;
     private final Set<Cluster> finalClusters;
 
-    public EarlyMappingClusteringProtocol(List<Party> parties, Set<String> unionOfBlocks, double similarityThreshold, int minimumSubsetSize, int bloomFilterLength, boolean enhancedPrivacy) {
+    public EarlyMappingClusteringProtocol(List<Party> parties, Set<String> unionOfBKVS, double similarityThreshold, int minimumSubsetSize, int bloomFilterLength, boolean enhancedPrivacy) {
         this.parties = parties;
-        this.unionOfBlocks = unionOfBlocks;
+        this.unionOfBKVs = unionOfBKVS;
         this.similarityThreshold = similarityThreshold;
         this.minimumSubsetSize = minimumSubsetSize;
         this.bloomFilterLength = bloomFilterLength;
@@ -39,17 +40,17 @@ public class EarlyMappingClusteringProtocol implements PPRLProtocol {
         // Order parties based on database size
         orderPartiesDesc();
         // Iterate blocks
-        System.out.println("Number of blocks: " + unionOfBlocks.size());
-        for (String blockKey : unionOfBlocks) {
+        System.out.println("Number of blocks: " + unionOfBKVs.size());
+        for (String blockKey : unionOfBKVs) {
             WeightedGraph blockGraph = new WeightedGraph();
             for (int i = 0; i < parties.size(); i++) {
-                if(enhancedPrivacy) {
-                    List<Party> participantParties = getParticipantParties(i);
-//                    encodeBlockOfParties(participantParties, blockKey);
-                }
-
                 if (!parties.get(i).getBloomFilterEncodedRecordGroups().containsKey(blockKey)) {
                     continue;
+                }
+
+                if(enhancedPrivacy) {
+                    List<Party> participantParties = getParticipantParties(i, blockKey);
+                    encodeBlockOfParties(participantParties, blockKey);
                 }
 
                 List<BloomFilterEncodedRecord> block = parties.get(i).getBloomFilterEncodedRecordGroups().get(blockKey);
@@ -102,22 +103,25 @@ public class EarlyMappingClusteringProtocol implements PPRLProtocol {
     public Set<RecordIdentifierCluster> getResults() {
         return finalClusters.stream()
                 .map(cluster -> cluster.bloomFilterEncodedRecordsSet().stream()
-                        .map(encodedRecord -> new RecordIdentifier(encodedRecord.party(), encodedRecord.id()))
+                        .map(encodedRecord -> new RecordIdentifier(encodedRecord.getParty(), encodedRecord.getId()))
                         .collect(Collectors.toSet()))
                 .map(RecordIdentifierCluster::new)
                 .collect(Collectors.toSet());
     }
 
-//    private void encodeBlockOfParties(List<Party> participantParties, String block) {
-//        EncodingHandler encodingHandler = new EncodingHandler();
-//        for (Party party : participantParties) {
-//            party.encodeRecordsOfBlock(encodingHandler, block);
-//        }
-//    }
+    private void encodeBlockOfParties(List<Party> participantParties, String block) {
+        EncodingHandler encodingHandler = new EncodingHandler();
+        for (Party party : participantParties) {
+            party.encodeRecordsOfBlock(encodingHandler, block);
+        }
+    }
 
-    private List<Party> getParticipantParties(int indexOfCurrentParty) {
+    private List<Party> getParticipantParties(int indexOfCurrentParty, String blockKey) {
         ArrayList<Party> participantParties = new ArrayList<>();
         for (int i = 0; i <= indexOfCurrentParty; i++) {
+            if (!parties.get(i).getBloomFilterEncodedRecordGroups().containsKey(blockKey)) {
+                continue;
+            }
             participantParties.add(parties.get(i));
         }
 

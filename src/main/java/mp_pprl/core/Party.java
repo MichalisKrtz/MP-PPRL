@@ -8,6 +8,7 @@ import mp_pprl.soundex_based.HashedSoundexEncodedRecord;
 import mp_pprl.soundex_based.NoiseDataGenerator;
 import org.apache.commons.codec.language.Soundex;
 
+import java.text.Normalizer;
 import java.util.*;
 
 public class Party {
@@ -48,21 +49,21 @@ public class Party {
         }
     }
 
-//    /*Encode records of one block to bloom filters. Set the bloom filters of the Records*/
-//    public void encodeRecordsOfBlock(EncodingHandler encodingHandler, String block) {
+    /*Encode records of one block to bloom filters. Set the bloom filters of the Records*/
+    public void encodeRecordsOfBlock(EncodingHandler encodingHandler, String block) {
 //        bloomFilterEncodedRecordGroups.get(block).clear();
+        for (BloomFilterEncodedRecord bloomFilterEncodedRecord : bloomFilterEncodedRecordGroups.get(block)) {
+            Optional<Record> optionalRecord = getRecordById(bloomFilterEncodedRecord.getId());
+            Record record = optionalRecord.orElseThrow();
+            BloomFilter bf = new BloomFilter(bloomFilterLength, numberOfHashFunctions, encodingHandler);
+            for (String qId : quasiIdentifiers) {
+                if (qId.equals("id")) continue;
+                bf.addElement(record.get(qId).getValueAsString());
+            }
+            bloomFilterEncodedRecord.setBloomFilter(bf);
+        }
+
 //        Soundex soundex = new Soundex();
-//        for (BloomFilterEncodedRecord bloomFilterEncodedRecord : bloomFilterEncodedRecordGroups.get(block)) {
-//            Optional<Record> optionalRecord = getRecordById(bloomFilterEncodedRecord.id());
-//            Record record = optionalRecord.orElseThrow();
-//            BloomFilter bf = bloomFilterEncodedRecord.bloomFilter();
-//            for (String qId : quasiIdentifiers) {
-//                if (qId.equals("id")) continue;
-//                bf.addElement(record.get(qId).getValueAsString());
-//            }
-//        }
-//
-//
 //        for (Record record : records) {
 //            Optional<BloomFilterEncodedRecord> optionalBloomFilterEncodedRecord = getBloomFilterEncodedRecordById(record.get("id").getValueAsString());
 //            BloomFilterEncodedRecord bloomFilterEncodedRecord = optionalBloomFilterEncodedRecord.orElseThrow();
@@ -80,7 +81,7 @@ public class Party {
 //            }
 //            bloomFilterEncodedRecordGroups.get(soundexString).add(bloomFilterEncodedRecord);
 //        }
-//    }
+    }
 
     public void encodeRecordsWithSoundex() {
         Soundex soundex = new Soundex();
@@ -88,13 +89,23 @@ public class Party {
             List<String> encodedFields = new ArrayList<>();
             for (String qId : quasiIdentifiers) {
                 if (qId.equals("id")) {
-                    encodedFields.add(record.get(qId).getValueAsString());
+                    encodedFields.addFirst(record.get(qId).getValueAsString());
                     continue;
                 }
-                encodedFields.add(soundex.encode((record.get(qId).getValueAsString())));
+                String normalizedString = normalizeString(record.get(qId).getValueAsString());
+                String[] splitStrings = normalizedString.split("\\s+");
+                for (String s : splitStrings) {
+                    encodedFields.add(soundex.encode((s)));
+                }
+//                encodedFields.add(soundex.encode(normalizedString));
             }
             soundexEncodedRecords.add(encodedFields);
         }
+    }
+
+    public static String normalizeString(String input) {
+        return Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("[^\\p{ASCII}]", "");
     }
 
     public void groupBloomFilterEncodedRecordsByBlockingKeyValue() {
@@ -104,7 +115,8 @@ public class Party {
             BloomFilterEncodedRecord bloomFilterEncodedRecord = optionalBloomFilterEncodedRecord.orElseThrow();
             StringBuilder soundexStringBuilder = new StringBuilder();
             for (String bkv : blockingKeyValues) {
-                soundexStringBuilder.append(soundex.encode(record.get(bkv).getValueAsString()));
+                String normalizedString = normalizeString(record.get(bkv).getValueAsString());
+                soundexStringBuilder.append(soundex.encode(normalizedString));
             }
             String soundexString = soundexStringBuilder.toString();
             if (!bloomFilterEncodedRecordGroups.containsKey(soundexString)) {
@@ -114,6 +126,17 @@ public class Party {
                 continue;
             }
             bloomFilterEncodedRecordGroups.get(soundexString).add(bloomFilterEncodedRecord);
+        }
+    }
+
+    public void truncateSoundexEncodedRecords(int charsToTruncate) {
+        for (List<String> encodedFields : soundexEncodedRecords) {
+            for (int i = 1; i < encodedFields.size(); i++) {
+                if (!encodedFields.get(i).isEmpty()) {
+                    String truncatedField = encodedFields.get(i).substring(0, encodedFields.get(i).length() - charsToTruncate);
+                    encodedFields.set(i, truncatedField);
+                }
+            }
         }
     }
 
@@ -129,17 +152,6 @@ public class Party {
         }
     }
 
-    public void truncateSoundexEncodedRecords(int charsToTruncate) {
-        for (List<String> encodedFields : soundexEncodedRecords) {
-            for (int i = 1; i < encodedFields.size(); i++) {
-                if (!encodedFields.get(i).isEmpty()) {
-                    String truncatedField = encodedFields.get(i).substring(0, encodedFields.get(i).length() - charsToTruncate);
-                    encodedFields.set(i, truncatedField);
-                }
-            }
-        }
-    }
-
     public void generateNoise(double noisePercentage) {
         List<List<String>> noiseData = NoiseDataGenerator.generateNoiseData(soundexEncodedRecords.size(), noisePercentage);
         soundexEncodedRecords.addAll(noiseData);
@@ -147,8 +159,8 @@ public class Party {
 
     public void addToCountingBloomFilter(CountingBloomFilter countingBloomFilter, String recordId) {
         for (BloomFilterEncodedRecord record : bloomFilterEncodedRecords) {
-            if (recordId.equals(record.id())) {
-                countingBloomFilter.addVector(record.bloomFilter().getVector());
+            if (recordId.equals(record.getId())) {
+                countingBloomFilter.addVector(record.getBloomFilter().getVector());
             }
         }
     }
@@ -175,7 +187,7 @@ public class Party {
 
     private Optional<BloomFilterEncodedRecord> getBloomFilterEncodedRecordById(String id) {
         for (BloomFilterEncodedRecord bloomFilterEncodedRecord : bloomFilterEncodedRecords) {
-            if (bloomFilterEncodedRecord.id().equals(id)) return Optional.of(bloomFilterEncodedRecord);
+            if (bloomFilterEncodedRecord.getId().equals(id)) return Optional.of(bloomFilterEncodedRecord);
         }
         return Optional.empty();
     }

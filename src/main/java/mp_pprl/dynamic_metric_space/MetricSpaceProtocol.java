@@ -106,7 +106,7 @@ public class MetricSpaceProtocol implements PPRLProtocol {
     // Helper method to convert a Cluster to a RecordIdentifierCluster
     private RecordIdentifierCluster convertClusterToRecordIdentifierCluster(Cluster cluster) {
         Set<RecordIdentifier> recordIdentifiers = cluster.bloomFilterEncodedRecordsSet().stream()
-                .map(encodedRecord -> new RecordIdentifier(encodedRecord.party(), encodedRecord.id()))
+                .map(encodedRecord -> new RecordIdentifier(encodedRecord.getParty(), encodedRecord.getId()))
                 .collect(Collectors.toSet());
 
         return new RecordIdentifierCluster(recordIdentifiers);
@@ -137,7 +137,7 @@ public class MetricSpaceProtocol implements PPRLProtocol {
 
     private double queryRecordRadius(BloomFilterEncodedRecord record) {
         int bitsSetToOne = 0;
-        for (byte cell : record.bloomFilter().getVector()) {
+        for (byte cell : record.getBloomFilter().getVector()) {
             bitsSetToOne += cell;
         }
 
