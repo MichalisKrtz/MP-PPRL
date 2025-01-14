@@ -24,25 +24,28 @@ public class Application {
             "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/MP_10000/MP_A_10000.db",
             "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/MP_10000/MP_B_1_10000.db",
             "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/MP_10000/MP_C_1_10000.db",
+
     };
 
     public static void run() {
         long startTime = System.currentTimeMillis();
 //        runSoundexBasedProtocol();
-        runEarlyMappingClusteringProtocol(true);
-//        runMetricSpaceProtocol();
+//        runEarlyMappingClusteringProtocol(false);
+        runMetricSpaceProtocol();
         long endTime = System.currentTimeMillis();
         System.out.println("Time taken: " + (endTime - startTime) + "ms");
     }
 
     public static void runSoundexBasedProtocol() {
-        System.out.println("Soundex Based Protocol running...");
         double noisePercentage = 0;
         int charsToTruncate = 0;
+        boolean splitFields = false;
+
+        System.out.println("Soundex Based Protocol running...");
 
         List<Party> parties = loadRecordsToParties();
         int numberOfRecords = parties.getFirst().getRecordsSize();
-        encodePartyRecordsToSoundex(parties);
+        encodePartyRecordsToSoundex(parties, splitFields);
         generateNoiseData(parties, noisePercentage);
         truncateData(parties, charsToTruncate);
         generateHashes(parties);
@@ -54,12 +57,14 @@ public class Application {
     }
 
     public static void runEarlyMappingClusteringProtocol(boolean enhancedPrivacy) {
-        System.out.println("Early Mapping Clustering Protocol running...");
         double similarityThreshold = 0.8;
+        int charsToTruncateFromSoundex = 2;
+
+        System.out.println("Early Mapping Clustering Protocol running...");
 
         List<Party> parties = loadRecordsToParties();
         encodePartyRecordsToBloomFilters(parties);
-        groupPartyRecords(parties);
+        groupPartyRecords(parties, charsToTruncateFromSoundex);
 
         System.out.println("Early mapping clustering protocol...");
         Set<String> unionOfBKVs = getUnionOfBKVs(parties);
@@ -69,9 +74,10 @@ public class Application {
     }
 
     public static void runMetricSpaceProtocol() {
-        System.out.println("Metric Space Protocol running...");
         double similarityThreshold = 0.85;
         double maximalIntersection = 0.003;
+
+        System.out.println("Metric Space Protocol running...");
 
         List<Party> parties = loadRecordsToParties();
         encodePartyRecordsToBloomFilters(parties);
@@ -104,10 +110,10 @@ public class Application {
         }
     }
 
-    private static void encodePartyRecordsToSoundex(List<Party> parties) {
+    private static void encodePartyRecordsToSoundex(List<Party> parties, boolean splitFields) {
         System.out.println("Encoding party records with soundex...");
         for (Party party : parties) {
-            party.encodeRecordsWithSoundex();
+            party.encodeRecordsWithSoundex(splitFields);
         }
     }
 
@@ -138,10 +144,10 @@ public class Application {
         }
     }
 
-    private static void groupPartyRecords(List<Party> parties) {
+    private static void groupPartyRecords(List<Party> parties, int charsToTruncateFromSoundex) {
         System.out.println("Grouping party records...");
         for (Party party : parties) {
-            party.groupBloomFilterEncodedRecordsByBlockingKeyValue();
+            party.groupBloomFilterEncodedRecordsByBlockingKeyValue(charsToTruncateFromSoundex);
         }
     }
 

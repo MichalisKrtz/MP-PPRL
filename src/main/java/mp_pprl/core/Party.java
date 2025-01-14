@@ -51,7 +51,6 @@ public class Party {
 
     /*Encode records of one block to bloom filters. Set the bloom filters of the Records*/
     public void encodeRecordsOfBlock(EncodingHandler encodingHandler, String block) {
-//        bloomFilterEncodedRecordGroups.get(block).clear();
         for (BloomFilterEncodedRecord bloomFilterEncodedRecord : bloomFilterEncodedRecordGroups.get(block)) {
             Optional<Record> optionalRecord = getRecordById(bloomFilterEncodedRecord.getId());
             Record record = optionalRecord.orElseThrow();
@@ -62,28 +61,9 @@ public class Party {
             }
             bloomFilterEncodedRecord.setBloomFilter(bf);
         }
-
-//        Soundex soundex = new Soundex();
-//        for (Record record : records) {
-//            Optional<BloomFilterEncodedRecord> optionalBloomFilterEncodedRecord = getBloomFilterEncodedRecordById(record.get("id").getValueAsString());
-//            BloomFilterEncodedRecord bloomFilterEncodedRecord = optionalBloomFilterEncodedRecord.orElseThrow();
-//            StringBuilder soundexStringBuilder = new StringBuilder();
-//            for (String bkv : blockingKeyValues) {
-//                soundexStringBuilder.append(soundex.encode(record.get(bkv).getValueAsString()));
-//            }
-//            String soundexString = soundexStringBuilder.toString();
-//
-//            if (!bloomFilterEncodedRecordGroups.containsKey(soundexString)) {
-//                List<BloomFilterEncodedRecord> group = new ArrayList<>();
-//                group.add(bloomFilterEncodedRecord);
-//                bloomFilterEncodedRecordGroups.put(soundexString, group);
-//                continue;
-//            }
-//            bloomFilterEncodedRecordGroups.get(soundexString).add(bloomFilterEncodedRecord);
-//        }
     }
 
-    public void encodeRecordsWithSoundex() {
+    public void encodeRecordsWithSoundex(boolean splitFields) {
         Soundex soundex = new Soundex();
         for (Record record : records) {
             List<String> encodedFields = new ArrayList<>();
@@ -92,23 +72,31 @@ public class Party {
                     encodedFields.addFirst(record.get(qId).getValueAsString());
                     continue;
                 }
+
                 String normalizedString = normalizeString(record.get(qId).getValueAsString());
+                if (!splitFields) {
+                    encodedFields.add(soundex.encode(normalizedString));
+                    continue;
+                }
                 String[] splitStrings = normalizedString.split("\\s+");
                 for (String s : splitStrings) {
                     encodedFields.add(soundex.encode((s)));
                 }
-//                encodedFields.add(soundex.encode(normalizedString));
             }
             soundexEncodedRecords.add(encodedFields);
         }
     }
 
-    public static String normalizeString(String input) {
+    private String normalizeString(String input) {
         return Normalizer.normalize(input, Normalizer.Form.NFD)
                 .replaceAll("[^\\p{ASCII}]", "");
     }
 
-    public void groupBloomFilterEncodedRecordsByBlockingKeyValue() {
+    private String truncateSoundex(String soundex, int charsToTruncate) {
+        return soundex.substring(0, soundex.length() - charsToTruncate);
+    }
+
+    public void groupBloomFilterEncodedRecordsByBlockingKeyValue(int charsToTruncate) {
         Soundex soundex = new Soundex();
         for (Record record : records) {
             Optional<BloomFilterEncodedRecord> optionalBloomFilterEncodedRecord = getBloomFilterEncodedRecordById(record.get("id").getValueAsString());
@@ -116,6 +104,11 @@ public class Party {
             StringBuilder soundexStringBuilder = new StringBuilder();
             for (String bkv : blockingKeyValues) {
                 String normalizedString = normalizeString(record.get(bkv).getValueAsString());
+                if (charsToTruncate != 0) {
+                    String truncatedSoundex = truncateSoundex(soundex.encode(normalizedString), charsToTruncate);
+                    soundexStringBuilder.append(truncatedSoundex);
+                    continue;
+                }
                 soundexStringBuilder.append(soundex.encode(normalizedString));
             }
             String soundexString = soundexStringBuilder.toString();
@@ -133,12 +126,14 @@ public class Party {
         for (List<String> encodedFields : soundexEncodedRecords) {
             for (int i = 1; i < encodedFields.size(); i++) {
                 if (!encodedFields.get(i).isEmpty()) {
-                    String truncatedField = encodedFields.get(i).substring(0, encodedFields.get(i).length() - charsToTruncate);
+                    String truncatedField = truncateSoundex(encodedFields.get(i), charsToTruncate);
                     encodedFields.set(i, truncatedField);
                 }
             }
         }
     }
+
+
 
     public void generateHashesForSoundexEncodedRecords(EncodingHandler encodingHandler) {
         for(List<String> soundexEncodedRecord : soundexEncodedRecords) {

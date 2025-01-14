@@ -15,7 +15,6 @@ public class Indexer {
     }
 
     // Sets the first 2 initial pivots
-    //TODO initialize more pivots
     public void setInitialPivots(Set<Cluster> clusters) {
         Iterator<Cluster> iterator = clusters.iterator();
         Cluster cluster1 = iterator.next();
@@ -47,13 +46,11 @@ public class Indexer {
     }
 
     public void selectFarAwayPivots(Set<Cluster> clusters, int m) {
-        Set<Pivot> pivots = new HashSet<>(); // P is initially empty
+        Set<Pivot> pivots = new HashSet<>();
         List<Cluster> clustersUsed = new ArrayList<>();
 
-        // Step 2: Pick a random record x from Re
         Cluster x = clusters.iterator().next();
 
-        // Step 3: Find p ∈ Re such that d_h(x, p) > d_h(x, p') for all p' ∈ Re
         Cluster firstCandidate = null;
         double maxDistance = -1;
         for (Cluster candidate : clusters) {
@@ -63,29 +60,25 @@ public class Indexer {
                 firstCandidate = candidate;
             }
         }
-        pivots.add(new Pivot(firstCandidate)); // Add p to P
+        pivots.add(new Pivot(firstCandidate));
         clustersUsed.add(firstCandidate);
 
-        // Step 5: While |P| < m, keep selecting pivots
         while (pivots.size() < m) {
             Cluster bestCandidate = null;
             double maxMinDistanceSum = -1;
 
-            // Step 6: Find p ∈ Re that maximizes the sum of distances to current pivots
             for (Cluster candidate : clusters) {
                 double candidateMinDistanceSum = 0;
                 for (Pivot pivot : pivots) {
                     candidateMinDistanceSum += MetricSpace.distance(candidate, pivot.getCluster());
                 }
 
-                // Check if this candidate has a higher sum of distances than the current best
                 if (candidateMinDistanceSum > maxMinDistanceSum) {
                     maxMinDistanceSum = candidateMinDistanceSum;
                     bestCandidate = candidate;
                 }
             }
 
-            // Step 8: Add the chosen candidate to the set of pivots
             pivots.add(new Pivot(bestCandidate));
             clustersUsed.add(bestCandidate);
         }
@@ -93,7 +86,6 @@ public class Indexer {
         for (Cluster clusterUsed : clustersUsed) {
             clusters.remove(clusterUsed);
         }
-        // Step 9: Return the set of selected pivots
         for (Pivot pivot : pivots) {
             metricSpace.pivotElementsMap.put(pivot, new ArrayList<>());
             metricSpace.pivotElementsDistanceMap.put(pivot, new ArrayList<>());
@@ -157,6 +149,7 @@ public class Indexer {
         metricSpace.pivotElementsDistanceMap.get(maxCardPivot).remove(maxDistElementIndex);
 
         for (Pivot p : metricSpace.pivotElementsMap.keySet()) {
+            if (p.equals(newPivot)) continue;
             Iterator<Cluster> iter = metricSpace.pivotElementsMap.get(p).iterator();
             while (iter.hasNext()) {
                 Cluster cluster = iter.next();
