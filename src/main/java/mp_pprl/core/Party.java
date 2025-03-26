@@ -15,7 +15,12 @@ public class Party {
     public final int id;
     private final List<Record> records;
     private final List<BloomFilterEncodedRecord> bloomFilterEncodedRecords;
-    private final Map<String, List<BloomFilterEncodedRecord>> bloomFilterEncodedRecordGroups;
+
+    public void setBloomFilterEncodedRecordGroups(Map<String, List<BloomFilterEncodedRecord>> bloomFilterEncodedRecordGroups) {
+        this.bloomFilterEncodedRecordGroups = bloomFilterEncodedRecordGroups;
+    }
+
+    private Map<String, List<BloomFilterEncodedRecord>> bloomFilterEncodedRecordGroups;
     private final String[] quasiIdentifiers;
     private final String[] blockingKeyValues;
     private final int bloomFilterLength;
@@ -104,12 +109,16 @@ public class Party {
             StringBuilder soundexStringBuilder = new StringBuilder();
             for (String bkv : blockingKeyValues) {
                 String normalizedString = normalizeString(record.get(bkv).getValueAsString());
+                String soundexString = soundex.encode(normalizedString);
                 if (charsToTruncate != 0) {
-                    String truncatedSoundex = truncateSoundex(soundex.encode(normalizedString), charsToTruncate);
+                    if (soundexString.isEmpty()) {
+                        soundexString = "----";
+                    }
+                    String truncatedSoundex = truncateSoundex(soundexString, charsToTruncate);
                     soundexStringBuilder.append(truncatedSoundex);
                     continue;
                 }
-                soundexStringBuilder.append(soundex.encode(normalizedString));
+                soundexStringBuilder.append(soundexString);
             }
             String soundexString = soundexStringBuilder.toString();
             if (!bloomFilterEncodedRecordGroups.containsKey(soundexString)) {

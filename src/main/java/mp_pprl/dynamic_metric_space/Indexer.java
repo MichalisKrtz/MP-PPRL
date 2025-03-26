@@ -46,35 +46,32 @@ public class Indexer {
     }
 
     public void selectFarAwayPivots(Set<Cluster> clusters, int m) {
+        if (clusters.isEmpty()) {
+            return;
+        }
         Set<Pivot> pivots = new HashSet<>();
         List<Cluster> clustersUsed = new ArrayList<>();
 
+        // Make the first element a pivot
         Cluster x = clusters.iterator().next();
-
-        Cluster firstCandidate = null;
-        double maxDistance = -1;
-        for (Cluster candidate : clusters) {
-            double distance = MetricSpace.distance(x, candidate);
-            if (distance > maxDistance) {
-                maxDistance = distance;
-                firstCandidate = candidate;
-            }
-        }
-        pivots.add(new Pivot(firstCandidate));
-        clustersUsed.add(firstCandidate);
+        pivots.add(new Pivot(x));
+        clustersUsed.add(x);
 
         while (pivots.size() < m) {
-            Cluster bestCandidate = null;
-            double maxMinDistanceSum = -1;
+            if (clustersUsed.size() == clusters.size()) {
+                break;
+            }
 
+            Cluster bestCandidate = null;
+            double maxDistanceSum = -1;
             for (Cluster candidate : clusters) {
-                double candidateMinDistanceSum = 0;
+                double candidateDistanceSum = 0;
                 for (Pivot pivot : pivots) {
-                    candidateMinDistanceSum += MetricSpace.distance(candidate, pivot.getCluster());
+                    candidateDistanceSum += MetricSpace.distance(candidate, pivot.getCluster());
                 }
 
-                if (candidateMinDistanceSum > maxMinDistanceSum) {
-                    maxMinDistanceSum = candidateMinDistanceSum;
+                if (candidateDistanceSum > maxDistanceSum) {
+                    maxDistanceSum = candidateDistanceSum;
                     bestCandidate = candidate;
                 }
             }
@@ -93,8 +90,8 @@ public class Indexer {
     }
 
     public void assignElementsToPivots(Set<Cluster> dataset, double maximalIntersection) {
-        System.out.println("Dataset size: " + dataset.size());
-        System.out.println("Number of pivots: " + metricSpace.pivotElementsMap.size());
+//        System.out.println("Number of indexed records: " + numberOfIndexedRecords);
+//        System.out.println("Number of pivots: " + metricSpace.pivotElementsMap.size());
 
         for (Cluster cluster : dataset) {
             numberOfIndexedRecords++;

@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
 group = 'org.example'
@@ -19,4 +20,18 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+// 🔹 Specify the main class (Update this with your actual class name)
+application {
+    mainClass = 'mp_pprl.Main'  // Replace with your main class path
+}
+
+// 🔹 Ensure the JAR includes the Main-Class attribute
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'mp_pprl.Main'  // Replace with your main class
+        )
+    }
 }

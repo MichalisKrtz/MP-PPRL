@@ -87,9 +87,9 @@ public class PerformanceMetrics {
             }
         }
         falseNegatives = positives - truePositives;
-        System.out.println("Positives: " + positives);
-        System.out.println("TruePositives: " + truePositives);
-        System.out.println("FalsePositives: " + falsePositives);
-        System.out.println("FalseNegatives: " + falseNegatives);
+//        System.out.println("Positives: " + positives);
+//        System.out.println("TruePositives: " + truePositives);
+//        System.out.println("FalsePositives: " + falsePositives);
+//        System.out.println("FalseNegatives: " + falseNegatives);
     }
 }

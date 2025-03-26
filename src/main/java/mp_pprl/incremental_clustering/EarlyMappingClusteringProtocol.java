@@ -8,7 +8,7 @@ import mp_pprl.core.encoding.EncodingHandler;
 import mp_pprl.core.graph.Edge;
 import mp_pprl.core.graph.Cluster;
 import mp_pprl.core.graph.WeightedGraph;
-import mp_pprl.incremental_clustering.optimization.HungarianAlgorithm;
+import mp_pprl.core.optimization.HungarianAlgorithm;
 import mp_pprl.core.Party;
 
 import java.util.*;

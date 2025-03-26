@@ -1,4 +1,4 @@
-package mp_pprl.incremental_clustering.optimization;
+package mp_pprl.core.optimization;
 
 import mp_pprl.core.graph.Edge;
 import mp_pprl.core.graph.Cluster;
@@ -16,7 +16,7 @@ public class HungarianAlgorithm {
     public static Set<Edge> computeAssignments(Set<Edge> edges, boolean maximization) {
         List<Cluster> uniqueClustersX = getUniqueClustersX(edges);
         List<Cluster> uniqueClustersY = getUniqueClustersY(edges);
-
+        
         int n = findSimilarityMatrixSize(uniqueClustersX, uniqueClustersY);
 
         if (n == 0) {
