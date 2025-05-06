@@ -7,7 +7,7 @@ import mp_pprl.core.Party;
 import mp_pprl.core.BloomFilterEncodedRecord;
 import mp_pprl.core.graph.Cluster;
 import mp_pprl.core.graph.Edge;
-import mp_pprl.core.optimization.HungarianAlgorithm;
+import mp_pprl.core.optimization.HungarianAlgorithmMem;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,14 +15,14 @@ import java.util.stream.Collectors;
 public class MetricSpaceProtocol implements PPRLProtocol {
     private final List<Party> parties;
     private MetricSpace metricSpace;
-    private final double maximalIntersection;
-    private final double similarityThreshold;
+    private final float maximalIntersection;
+    private final float similarityThreshold;
     private final boolean blocking;
     private final Set<String> unionOfBKVs;
     Set<RecordIdentifierCluster> clusters;
 
 
-    public MetricSpaceProtocol(List<Party> parties, double maximalIntersection, double similarityThreshold, boolean blocking, Set<String> unionOfBKVs) {
+    public MetricSpaceProtocol(List<Party> parties, float maximalIntersection, float similarityThreshold, boolean blocking, Set<String> unionOfBKVs) {
         this.parties = parties;
         this.maximalIntersection = maximalIntersection;
         this.similarityThreshold = similarityThreshold;
@@ -57,25 +57,25 @@ public class MetricSpaceProtocol implements PPRLProtocol {
             Set<Cluster> qClusters = convertRecordsToSingletonClusters(parties.get(i).getBloomFilterEncodedRecords());
             // Iterate query records
             for (Cluster qSingletonCluster : qClusters) {
-                double qRecordRadius = queryRecordRadius(qSingletonCluster.bloomFilterEncodedRecordsSet().iterator().next());
+                float qRecordRadius = queryRecordRadius(qSingletonCluster.bloomFilterEncodedRecordsSet().iterator().next());
                 // Iterate Pivots
                 for (Pivot pivot : metricSpace.pivotElementsMap.keySet()) {
-                    double pivotQRecordDistance = MetricSpace.distance(pivot.getCluster(), qSingletonCluster);
+                    float pivotQRecordDistance = MetricSpace.distance(pivot.getCluster(), qSingletonCluster);
                     if (!queryRecordOverlapsWithPivot(pivot, pivotQRecordDistance, qRecordRadius)) {
                         continue;
                     }
                     // Check if the query record can be linked with the pivot's cluster
                     if (queryRecordSatisfiesTriangleInequality(pivotQRecordDistance, 0, qRecordRadius)) {
-                        double distance = MetricSpace.distance(pivot.getCluster(), qSingletonCluster);
+                        float distance = MetricSpace.distance(pivot.getCluster(), qSingletonCluster);
                         if (distance <= qRecordRadius) {
                             edges.add(new Edge(pivot.getCluster(), qSingletonCluster, distance));
                         }
                     }
                     // Check if the query record can be linked with any of the clusters assigned to the pivot
                     for (int j = 0; j < metricSpace.pivotElementsMap.get(pivot).size(); j++) {
-                        double pivotClusterDistance = metricSpace.pivotElementsDistanceMap.get(pivot).get(j);
+                        float pivotClusterDistance = metricSpace.pivotElementsDistanceMap.get(pivot).get(j);
                         if (queryRecordSatisfiesTriangleInequality(pivotQRecordDistance, pivotClusterDistance, qRecordRadius)) {
-                            double distance = MetricSpace.distance(metricSpace.pivotElementsMap.get(pivot).get(j), qSingletonCluster);
+                            float distance = MetricSpace.distance(metricSpace.pivotElementsMap.get(pivot).get(j), qSingletonCluster);
                             if (distance <= qRecordRadius) {
                                 edges.add(new Edge(metricSpace.pivotElementsMap.get(pivot).get(j),
                                                 qSingletonCluster,
@@ -89,7 +89,7 @@ public class MetricSpaceProtocol implements PPRLProtocol {
             }
 
             // CLUSTERING
-            Set<Edge> optimalEdges = new HashSet<>(HungarianAlgorithm.computeAssignments(edges, false));
+            Set<Edge> optimalEdges = new HashSet<>(HungarianAlgorithmMem.computeAssignments(edges, false));
             mergeQueryClusters(optimalEdges, qClusters);
 
             // INDEXING
@@ -125,25 +125,25 @@ public class MetricSpaceProtocol implements PPRLProtocol {
                 Set<Cluster> qClusters = convertRecordsToSingletonClusters(block);
                 // Iterate query records
                 for (Cluster qSingletonCluster : qClusters) {
-                    double qRecordRadius = queryRecordRadius(qSingletonCluster.bloomFilterEncodedRecordsSet().iterator().next());
+                    float qRecordRadius = queryRecordRadius(qSingletonCluster.bloomFilterEncodedRecordsSet().iterator().next());
                     // Iterate Pivots
                     for (Pivot pivot : metricSpace.pivotElementsMap.keySet()) {
-                        double pivotQRecordDistance = MetricSpace.distance(pivot.getCluster(), qSingletonCluster);
+                        float pivotQRecordDistance = MetricSpace.distance(pivot.getCluster(), qSingletonCluster);
                         if (!queryRecordOverlapsWithPivot(pivot, pivotQRecordDistance, qRecordRadius)) {
                             continue;
                         }
                         // Check if the query record can be linked with the pivot's cluster
                         if (queryRecordSatisfiesTriangleInequality(pivotQRecordDistance, 0, qRecordRadius)) {
-                            double distance = MetricSpace.distance(pivot.getCluster(), qSingletonCluster);
+                            float distance = MetricSpace.distance(pivot.getCluster(), qSingletonCluster);
                             if (distance <= qRecordRadius) {
                                 edges.add(new Edge(pivot.getCluster(), qSingletonCluster, distance));
                             }
                         }
                         // Check if the query record can be linked with any of the clusters assigned to the pivot
                         for (int j = 0; j < metricSpace.pivotElementsMap.get(pivot).size(); j++) {
-                            double pivotClusterDistance = metricSpace.pivotElementsDistanceMap.get(pivot).get(j);
+                            float pivotClusterDistance = metricSpace.pivotElementsDistanceMap.get(pivot).get(j);
                             if (queryRecordSatisfiesTriangleInequality(pivotQRecordDistance, pivotClusterDistance, qRecordRadius)) {
-                                double distance = MetricSpace.distance(metricSpace.pivotElementsMap.get(pivot).get(j), qSingletonCluster);
+                                float distance = MetricSpace.distance(metricSpace.pivotElementsMap.get(pivot).get(j), qSingletonCluster);
                                 if (distance <= qRecordRadius) {
                                     edges.add(new Edge(metricSpace.pivotElementsMap.get(pivot).get(j),
                                                     qSingletonCluster,
@@ -157,7 +157,7 @@ public class MetricSpaceProtocol implements PPRLProtocol {
                 }
 
                 // CLUSTERING
-                Set<Edge> optimalEdges = new HashSet<>(HungarianAlgorithm.computeAssignments(edges, false));
+                Set<Edge> optimalEdges = new HashSet<>(HungarianAlgorithmMem.computeAssignments(edges, false));
                 mergeQueryClusters(optimalEdges, qClusters);
 
                 // INDEXING
@@ -224,7 +224,7 @@ public class MetricSpaceProtocol implements PPRLProtocol {
         return null;
     }
 
-    private double queryRecordRadius(BloomFilterEncodedRecord record) {
+    private float queryRecordRadius(BloomFilterEncodedRecord record) {
         int bitsSetToOne = 0;
         for (byte cell : record.getBloomFilter().getVector()) {
             bitsSetToOne += cell;
@@ -233,11 +233,11 @@ public class MetricSpaceProtocol implements PPRLProtocol {
         return bitsSetToOne * ((1 - similarityThreshold) / similarityThreshold);
     }
 
-    private boolean queryRecordOverlapsWithPivot(Pivot pivot, double pivotQRecordDistance, double qRecordRadius) {
+    private boolean queryRecordOverlapsWithPivot(Pivot pivot, float pivotQRecordDistance, float qRecordRadius) {
         return pivotQRecordDistance <= (pivot.getRadius() + qRecordRadius);
     }
 
-    private boolean queryRecordSatisfiesTriangleInequality(double pivotQRecordDistance, double pivotClusterDistance, double qRecordRadius) {
+    private boolean queryRecordSatisfiesTriangleInequality(float pivotQRecordDistance, float pivotClusterDistance, float qRecordRadius) {
         return Math.abs(pivotQRecordDistance - pivotClusterDistance) <= qRecordRadius;
     }
 

@@ -8,15 +8,15 @@ import mp_pprl.core.encoding.EncodingHandler;
 import mp_pprl.core.graph.Edge;
 import mp_pprl.core.graph.Cluster;
 import mp_pprl.core.graph.WeightedGraph;
-import mp_pprl.core.optimization.HungarianAlgorithm;
 import mp_pprl.core.Party;
+import mp_pprl.core.optimization.HungarianAlgorithmMem;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 
 public class EarlyMappingClusteringProtocol implements PPRLProtocol {
-    private final double similarityThreshold;
+    private final float similarityThreshold;
     private final List<Party> parties;
     private final Set<String> unionOfBKVs;
     private final int minimumSubsetSize;
@@ -24,7 +24,7 @@ public class EarlyMappingClusteringProtocol implements PPRLProtocol {
     private final boolean enhancedPrivacy;
     private final Set<Cluster> finalClusters;
 
-    public EarlyMappingClusteringProtocol(List<Party> parties, Set<String> unionOfBKVS, double similarityThreshold, int minimumSubsetSize, int bloomFilterLength, boolean enhancedPrivacy) {
+    public EarlyMappingClusteringProtocol(List<Party> parties, Set<String> unionOfBKVS, float similarityThreshold, int minimumSubsetSize, int bloomFilterLength, boolean enhancedPrivacy) {
         this.parties = parties;
         this.unionOfBKVs = unionOfBKVS;
         this.similarityThreshold = similarityThreshold;
@@ -68,7 +68,7 @@ public class EarlyMappingClusteringProtocol implements PPRLProtocol {
                     Cluster newCluster = new Cluster(bloomFilterEncodedRecord);
                     newClusterSet.add(newCluster);
                     for (Cluster cluster : blockGraph.getClusters()) {
-                        double similarity;
+                        float similarity;
                         if (enhancedPrivacy) {
                             similarity = SimilarityCalculator.averageSimilaritySecure(cluster, bloomFilterEncodedRecord, bloomFilterLength);
                         } else {
@@ -83,7 +83,7 @@ public class EarlyMappingClusteringProtocol implements PPRLProtocol {
                 // Add new records to the block's graph.
                 blockGraph.addClusters(newClusterSet);
                 // Find optimal edges.
-                Set<Edge> optimalEdges = HungarianAlgorithm.computeAssignments(blockGraph.getEdges(), true);
+                Set<Edge> optimalEdges = HungarianAlgorithmMem.computeAssignments(blockGraph.getEdges(), true);
                 // Prune edges that are not optimal.
                 blockGraph.getEdges().removeIf(e -> !optimalEdges.contains(e));
                 // Merge clusters.

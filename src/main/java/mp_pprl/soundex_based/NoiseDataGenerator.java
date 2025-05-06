@@ -9,7 +9,7 @@ import java.util.List;
 
 public class NoiseDataGenerator {
 
-    public static List<List<String>> generateNoiseData(int originalSize, double noisePercentage) {
+    public static List<List<String>> generateNoiseData(int originalSize, float noisePercentage) {
         int numberOfNoiseData = rowsToGenerate(originalSize, noisePercentage);
         List<List<String>> noiseData = new ArrayList<>(numberOfNoiseData);
         for (int i = 0; i < numberOfNoiseData; i++) {
@@ -39,7 +39,7 @@ public class NoiseDataGenerator {
         return randomCode.toString();
     }
 
-    private static int rowsToGenerate(int originalSize, double noisePercentage) {
+    private static int rowsToGenerate(int originalSize, float noisePercentage) {
         return (int) (originalSize * noisePercentage );
     }
 
@@ -52,7 +52,7 @@ public class NoiseDataGenerator {
         for (int x = 0; x < 5; x++) {
             row.add(generateRandomSoundex());
         }
-        row.add(String.valueOf(r.nextDouble()));
+        row.add(String.valueOf(r.nextFloat()));
         return row;
     }
 

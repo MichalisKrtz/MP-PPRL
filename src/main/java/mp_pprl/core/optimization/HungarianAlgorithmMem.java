@@ -1,7 +1,7 @@
 package mp_pprl.core.optimization;
 
-import mp_pprl.core.graph.Edge;
 import mp_pprl.core.graph.Cluster;
+import mp_pprl.core.graph.Edge;
 
 import java.util.*;
 
@@ -12,7 +12,7 @@ import java.util.*;
  *
  * @author gbaker
  */
-public class HungarianAlgorithm {
+public class HungarianAlgorithmMem {
     public static Set<Edge> computeAssignments(Set<Edge> edges, boolean maximization) {
         List<Cluster> uniqueClustersX = getUniqueClustersX(edges);
         List<Cluster> uniqueClustersY = getUniqueClustersY(edges);
@@ -23,7 +23,8 @@ public class HungarianAlgorithm {
             return new HashSet<>();
         }
 
-        float[][] similarityMatrix = initializeSimilarityMatrix(n, edges, uniqueClustersX, uniqueClustersY, maximization);
+        FloatMatrix similarityMatrix = initializeSimilarityMatrix(n, edges, uniqueClustersX, uniqueClustersY, maximization);
+
 
         if (maximization) {
             similarityMatrix = convertToMaximizationProblem(similarityMatrix);
@@ -34,16 +35,16 @@ public class HungarianAlgorithm {
 
 
         // non-negative values are the index of the starred or primed zero in the row or column
-        int[] starsByRow = new int[similarityMatrix.length];
+        int[] starsByRow = new int[similarityMatrix.length()];
         Arrays.fill(starsByRow, -1);
-        int[] starsByCol = new int[similarityMatrix[0].length];
+        int[] starsByCol = new int[similarityMatrix.colsCount()];
         Arrays.fill(starsByCol, -1);
-        int[] primesByRow = new int[similarityMatrix.length];
+        int[] primesByRow = new int[similarityMatrix.length()];
         Arrays.fill(primesByRow, -1);
 
         // 1s mean covered, 0s mean not covered
-        int[] coveredRows = new int[similarityMatrix.length];
-        int[] coveredCols = new int[similarityMatrix[0].length];
+        int[] coveredRows = new int[similarityMatrix.length()];
+        int[] coveredCols = new int[similarityMatrix.colsCount()];
 
         // star any zero that has no other starred zero in the same row or column
         initStars(similarityMatrix, starsByRow, starsByCol);
@@ -80,7 +81,7 @@ public class HungarianAlgorithm {
         // ok now we should have assigned everything
         // take the starred zeroes in each column as the correct assignments
 
-        int[][] retval = new int[similarityMatrix.length][];
+        int[][] retval = new int[similarityMatrix.length()][];
         for (int i = 0; i < starsByCol.length; i++) {
             retval[i] = new int[]{starsByCol[i], i};
         }
@@ -105,34 +106,34 @@ public class HungarianAlgorithm {
      *
      * @return the next step to perform
      */
-    private static void reduceMatrix(float[][] matrix) {
+    private static void reduceMatrix(FloatMatrix matrix) {
 
-        for (int i = 0; i < matrix.length; i++) {
+        for (int i = 0; i < matrix.length(); i++) {
 
             // find the min value in the row
             float minValInRow = Float.MAX_VALUE;
-            for (int j = 0; j < matrix[i].length; j++) {
-                if (minValInRow > matrix[i][j]) {
-                    minValInRow = matrix[i][j];
+            for (int j = 0; j < matrix.colsCount(); j++) {
+                if (minValInRow > matrix.get(i, j)) {
+                    minValInRow = matrix.get(i, j);
                 }
             }
 
             // subtract it from all values in the row
-            for (int j = 0; j < matrix[i].length; j++) {
-                matrix[i][j] -= minValInRow;
+            for (int j = 0; j < matrix.colsCount(); j++) {
+                matrix.set(i, j, matrix.get(i, j) - minValInRow);
             }
         }
 
-        for (int i = 0; i < matrix[0].length; i++) {
+        for (int i = 0; i < matrix.colsCount(); i++) {
             float minValInCol = Float.MAX_VALUE;
-            for (int j = 0; j < matrix.length; j++) {
-                if (minValInCol > matrix[j][i]) {
-                    minValInCol = matrix[j][i];
+            for (int j = 0; j < matrix.length(); j++) {
+                if (minValInCol > matrix.get(j, i)) {
+                    minValInCol = matrix.get(j, i);
                 }
             }
 
-            for (int j = 0; j < matrix.length; j++) {
-                matrix[j][i] -= minValInCol;
+            for (int j = 0; j < matrix.length(); j++) {
+                matrix.set(j, i, matrix.get(j, i) - minValInCol);
             }
 
         }
@@ -153,15 +154,15 @@ public class HungarianAlgorithm {
      * @param coveredCols
      * @return the next step to perform
      */
-    private static void initStars(float[][] costMatrix, int[] starsByRow, int[] starsByCol) {
+    private static void initStars(FloatMatrix costMatrix, int[] starsByRow, int[] starsByCol) {
 
 
-        int[] rowHasStarredZero = new int[costMatrix.length];
-        int[] colHasStarredZero = new int[costMatrix[0].length];
+        int[] rowHasStarredZero = new int[costMatrix.length()];
+        int[] colHasStarredZero = new int[costMatrix.colsCount()];
 
-        for (int i = 0; i < costMatrix.length; i++) {
-            for (int j = 0; j < costMatrix[i].length; j++) {
-                if (0 == costMatrix[i][j] && 0 == rowHasStarredZero[i] && 0 == colHasStarredZero[j]) {
+        for (int i = 0; i < costMatrix.length(); i++) {
+            for (int j = 0; j < costMatrix.colsCount(); j++) {
+                if (0 == costMatrix.get(i, j) && 0 == rowHasStarredZero[i] && 0 == colHasStarredZero[j]) {
                     starsByRow[i] = j;
                     starsByCol[j] = i;
                     rowHasStarredZero[i] = 1;
@@ -195,16 +196,16 @@ public class HungarianAlgorithm {
      * @param coveredCols
      * @return
      */
-    private static int[] primeSomeUncoveredZero(float matrix[][], int[] primesByRow,
+    private static int[] primeSomeUncoveredZero(FloatMatrix matrix, int[] primesByRow,
                                                 int[] coveredRows, int[] coveredCols) {
 
 
         // find an uncovered zero and prime it
-        for (int i = 0; i < matrix.length; i++) {
+        for (int i = 0; i < matrix.length(); i++) {
             if (1 == coveredRows[i]) continue;
-            for (int j = 0; j < matrix[i].length; j++) {
+            for (int j = 0; j < matrix.colsCount(); j++) {
                 // if it's a zero and the column is not covered
-                if (0 == matrix[i][j] && 0 == coveredCols[j]) {
+                if (0 == matrix.get(i, j) && 0 == coveredCols[j]) {
 
                     // ok this is an unstarred zero
                     // prime it
@@ -258,15 +259,15 @@ public class HungarianAlgorithm {
     }
 
 
-    private static void makeMoreZeroes(float[][] matrix, int[] coveredRows, int[] coveredCols) {
+    private static void makeMoreZeroes(FloatMatrix matrix, int[] coveredRows, int[] coveredCols) {
 
         // find the minimum uncovered value
         float minUncoveredValue = Float.MAX_VALUE;
-        for (int i = 0; i < matrix.length; i++) {
+        for (int i = 0; i < matrix.length(); i++) {
             if (0 == coveredRows[i]) {
-                for (int j = 0; j < matrix[i].length; j++) {
-                    if (0 == coveredCols[j] && matrix[i][j] < minUncoveredValue) {
-                        minUncoveredValue = matrix[i][j];
+                for (int j = 0; j < matrix.colsCount(); j++) {
+                    if (0 == coveredCols[j] && matrix.get(i, j) < minUncoveredValue) {
+                        minUncoveredValue = matrix.get(i, j);
                     }
                 }
             }
@@ -275,8 +276,8 @@ public class HungarianAlgorithm {
         // add the min value to all covered rows
         for (int i = 0; i < coveredRows.length; i++) {
             if (1 == coveredRows[i]) {
-                for (int j = 0; j < matrix[i].length; j++) {
-                    matrix[i][j] += minUncoveredValue;
+                for (int j = 0; j < matrix.colsCount(); j++) {
+                    matrix.set(i, j, matrix.get(i, j) + minUncoveredValue);
                 }
             }
         }
@@ -284,8 +285,8 @@ public class HungarianAlgorithm {
         // subtract the min value from all uncovered columns
         for (int i = 0; i < coveredCols.length; i++) {
             if (0 == coveredCols[i]) {
-                for (int j = 0; j < matrix.length; j++) {
-                    matrix[j][i] -= minUncoveredValue;
+                for (int j = 0; j < matrix.length(); j++) {
+                    matrix.set(j, i, matrix.get(j, i) - minUncoveredValue);
                 }
             }
         }
@@ -326,33 +327,33 @@ public class HungarianAlgorithm {
         return optimalEdges;
     }
 
-    private static float[][] convertToMaximizationProblem(float[][] matrix) {
-        float[][] modifiedMatrix = new float[matrix.length][matrix.length];
+    private static FloatMatrix convertToMaximizationProblem(FloatMatrix matrix) {
+        FloatMatrix modifiedMatrix = new FloatMatrix(matrix.rowsCount(), matrix.colsCount());
         float maxElement = 0;
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix.length; j++) {
-                if (maxElement < matrix[i][j]) {
-                    maxElement = matrix[i][j];
+        for (int i = 0; i < matrix.length(); i++) {
+            for (int j = 0; j < matrix.length(); j++) {
+                if (maxElement < matrix.get(i, j)) {
+                    maxElement = matrix.get(i, j);
                 }
             }
         }
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix.length; j++) {
-                modifiedMatrix[i][j] = maxElement - matrix[i][j];
+        for (int i = 0; i < matrix.length(); i++) {
+            for (int j = 0; j < matrix.length(); j++) {
+                modifiedMatrix.set(i, j, maxElement - matrix.get(i, j));
             }
         }
 
         return modifiedMatrix;
     }
 
-    private static float[][] initializeSimilarityMatrix(int matrixSize, Set<Edge> edges, List<Cluster> uniqueClustersX, List<Cluster> uniqueClustersY, boolean maximization) {
+    private static FloatMatrix initializeSimilarityMatrix(int matrixSize, Set<Edge> edges, List<Cluster> uniqueClustersX, List<Cluster> uniqueClustersY, boolean maximization) {
         System.out.println("Matrix size: " + matrixSize + "X" + matrixSize);
-        float[][] similarityMatrix = new float[matrixSize][matrixSize];
+        FloatMatrix similarityMatrix = new FloatMatrix(matrixSize, matrixSize);
 
         if (!maximization) {
             for(int i = 0; i < matrixSize; i++) {
                 for (int j = 0; j < matrixSize; j++) {
-                    similarityMatrix[i][j] = Float.MAX_VALUE;
+                    similarityMatrix.set(i, j, Float.MAX_VALUE);
                 }
             }
         }
@@ -360,7 +361,7 @@ public class HungarianAlgorithm {
         for (Edge edge : edges) {
             int clusterXIndex = uniqueClustersX.indexOf(edge.c1());
             int clusterYIndex = uniqueClustersY.indexOf(edge.c2());
-            similarityMatrix[clusterXIndex][clusterYIndex] = edge.metric();
+            similarityMatrix.set(clusterXIndex, clusterYIndex, edge.metric());
         }
 
         return similarityMatrix;

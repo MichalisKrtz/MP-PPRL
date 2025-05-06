@@ -20,13 +20,13 @@ public class Indexer {
         Cluster cluster1 = iterator.next();
         Cluster cluster2 = iterator.next();
 
-        double maxDistance = Double.MIN_VALUE;
+        float maxDistance = Float.MIN_VALUE;
         for (Cluster outerCluster : clusters) {
             for (Cluster innerCluster : clusters) {
                 if (outerCluster.equals(innerCluster)) {
                     continue;
                 }
-                double dist = MetricSpace.distance(outerCluster, innerCluster);
+                float dist = MetricSpace.distance(outerCluster, innerCluster);
                 if (dist > maxDistance) {
                     maxDistance = dist;
                     cluster1 = outerCluster;
@@ -63,9 +63,9 @@ public class Indexer {
             }
 
             Cluster bestCandidate = null;
-            double maxDistanceSum = -1;
+            float maxDistanceSum = -1;
             for (Cluster candidate : clusters) {
-                double candidateDistanceSum = 0;
+                float candidateDistanceSum = 0;
                 for (Pivot pivot : pivots) {
                     candidateDistanceSum += MetricSpace.distance(candidate, pivot.getCluster());
                 }
@@ -89,17 +89,17 @@ public class Indexer {
         }
     }
 
-    public void assignElementsToPivots(Set<Cluster> dataset, double maximalIntersection) {
+    public void assignElementsToPivots(Set<Cluster> dataset, float maximalIntersection) {
 //        System.out.println("Number of indexed records: " + numberOfIndexedRecords);
 //        System.out.println("Number of pivots: " + metricSpace.pivotElementsMap.size());
 
         for (Cluster cluster : dataset) {
             numberOfIndexedRecords++;
-            double minDist = Double.MAX_VALUE;
+            float minDist = Float.MAX_VALUE;
             Pivot bestPivot = null;
 
             for (Pivot p : metricSpace.pivotElementsMap.keySet()) {
-                double dist = MetricSpace.distance(cluster, p.getCluster());
+                float dist = MetricSpace.distance(cluster, p.getCluster());
                 if (dist <= p.getRadius()) {
                     intersections++;
                 }
@@ -129,7 +129,7 @@ public class Indexer {
         Pivot maxCardPivot = maxCardinalityPivot();
 
         // Choose the furthest element from the maxCardinalityPivot
-        double maxDist = metricSpace.pivotElementsDistanceMap.get(maxCardPivot).getFirst();
+        float maxDist = metricSpace.pivotElementsDistanceMap.get(maxCardPivot).getFirst();
         Cluster maxDistElement = metricSpace.pivotElementsMap.get(maxCardPivot).getFirst();
         int maxDistElementIndex = 0;
         for (int i = 1; i < metricSpace.pivotElementsMap.get(maxCardPivot).size(); i++) {
@@ -150,9 +150,9 @@ public class Indexer {
             Iterator<Cluster> iter = metricSpace.pivotElementsMap.get(p).iterator();
             while (iter.hasNext()) {
                 Cluster cluster = iter.next();
-                double newDistance = MetricSpace.distance(cluster, newPivot.getCluster());
+                float newDistance = MetricSpace.distance(cluster, newPivot.getCluster());
                 int elementIndex = metricSpace.pivotElementsMap.get(p).indexOf(cluster);
-                double oldDistance =  metricSpace.pivotElementsDistanceMap.get(p).get(elementIndex);
+                float oldDistance =  metricSpace.pivotElementsDistanceMap.get(p).get(elementIndex);
 
                 if (newDistance < oldDistance) {
                     metricSpace.pivotElementsMap.get(newPivot).add(cluster);
@@ -186,7 +186,7 @@ public class Indexer {
 //            //Increment once because the pivot's record, intersects the pivot radius
 //            intersections++;
 //            for (Cluster cluster : allClusters) {
-//                double dist = MetricSpace.distance(cluster, p.getCluster());
+//                float dist = MetricSpace.distance(cluster, p.getCluster());
 //                if (dist <= p.getRadius()) {
 //                    intersections++;
 //                }
@@ -212,8 +212,8 @@ public class Indexer {
         return maxCardPivot;
     }
 
-    private double overlap() {
-        return (double) intersections / (numberOfIndexedRecords * metricSpace.pivotElementsMap.size());
+    private float overlap() {
+        return (float) intersections / (numberOfIndexedRecords * metricSpace.pivotElementsMap.size());
 
     }
 

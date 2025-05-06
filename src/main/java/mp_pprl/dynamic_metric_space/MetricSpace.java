@@ -9,14 +9,14 @@ import java.util.Map;
 
 public class MetricSpace {
     public final Map<Pivot, List<Cluster>> pivotElementsMap;
-    public final Map<Pivot, List<Double>> pivotElementsDistanceMap;
+    public final Map<Pivot, List<Float>> pivotElementsDistanceMap;
 
     public MetricSpace() {
         pivotElementsMap = new HashMap<>();
         pivotElementsDistanceMap = new HashMap<>();
     }
 
-    public static double distance(Cluster c1, Cluster c2) {
+    public static float distance(Cluster c1, Cluster c2) {
         int hammingDistanceSum = 0;
         for (BloomFilterEncodedRecord r1 : c1.bloomFilterEncodedRecordsSet()) {
             for (BloomFilterEncodedRecord r2 : c2.bloomFilterEncodedRecordsSet()) {
@@ -24,10 +24,10 @@ public class MetricSpace {
             }
         }
 
-        return (double) hammingDistanceSum / (c1.bloomFilterEncodedRecordsSet().size() * c2.bloomFilterEncodedRecordsSet().size());
+        return (float) hammingDistanceSum / (c1.bloomFilterEncodedRecordsSet().size() * c2.bloomFilterEncodedRecordsSet().size());
     }
 
-    public static double distance(BloomFilterEncodedRecord r1, BloomFilterEncodedRecord r2) {
+    public static float distance(BloomFilterEncodedRecord r1, BloomFilterEncodedRecord r2) {
 
         return calculateHammingDistance(r1.getBloomFilter().getVector(), r2.getBloomFilter().getVector());
     }

@@ -26,16 +26,10 @@ public class Application {
 
     public Application() {
         dbPathGroups.add(Arrays.asList(
-                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/A_200000.db",
-                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/B_1_200000.db",
-                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/C_1_200000.db")
-        );
-
-        dbPathGroups.add(Arrays.asList(
-                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/A_200000.db",
-                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/B_1_200000.db",
-                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/C_1_200000.db",
-                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/D_1_200000.db")
+                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/A_100000.db",
+                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/B_1_100000.db",
+                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/C_1_100000.db",
+                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/D_1_100000.db")
         );
     }
 
@@ -44,24 +38,24 @@ public class Application {
             dbPaths = dbGroup;
             long startTime = System.currentTimeMillis();
             // SB
-            runSoundexBasedProtocol(0, 0, false);
+//            runSoundexBasedProtocol(0, 0, false);
             // S-SB
-            runSoundexBasedProtocol(0, 2, true);
+//            runSoundexBasedProtocol(0, 2, true);
             // EMIC
             runEarlyMappingClusteringProtocol(0, false);
             // T-EMIC
-            runEarlyMappingClusteringProtocol(3, false);
+//            runEarlyMappingClusteringProtocol(3, false);
             // DMS
-            runMetricSpaceProtocol(false, 0);
+//            runMetricSpaceProtocol(false, 0);
             // B-DMS
-            runMetricSpaceProtocol(true, 3);
+//            runMetricSpaceProtocol(true, 3);
             long endTime = System.currentTimeMillis();
             System.out.print("Time taken: " + (endTime - startTime) + "ms\n\n");
         }
 
     }
 
-    public static void runSoundexBasedProtocol(double noisePercentage, int charsToTruncate, boolean splitFields) {
+    public static void runSoundexBasedProtocol(float noisePercentage, int charsToTruncate, boolean splitFields) {
         System.out.println("Soundex Based Protocol running...");
 
         List<Party> parties = loadRecordsToParties();
@@ -73,12 +67,12 @@ public class Application {
 
         System.out.println("Soundex based protocol...");
         SoundexBasedProtocol soundexBasedProtocol = new SoundexBasedProtocol(parties);
-        PerformanceMetrics metrics = new PerformanceMetrics(soundexBasedProtocol, parties.size(), numberOfRecords, 0.25);
+        PerformanceMetrics metrics = new PerformanceMetrics(soundexBasedProtocol, parties.size(), numberOfRecords, 0.25f);
         printProtocolResults(metrics);
     }
 
     public static void runEarlyMappingClusteringProtocol(int charsToTruncateFromSoundex, boolean enhancedPrivacy) {
-        double similarityThreshold = 0.8;
+        float similarityThreshold = 0.8f;
 
         System.out.println("Early Mapping Clustering Protocol running...");
 
@@ -90,15 +84,15 @@ public class Application {
         Set<String> unionOfBKVs = getUnionOfBKVs(parties);
         EarlyMappingClusteringProtocol clusteringProtocol = new EarlyMappingClusteringProtocol(parties, unionOfBKVs, similarityThreshold, minimumSubsetSize, bloomFilterLength, enhancedPrivacy);
         System.out.println("Number of blocks: " + unionOfBKVs.size());
-        PerformanceMetrics metrics = new PerformanceMetrics(clusteringProtocol, parties.size(),parties.getFirst().getRecordsSize(), 0.25);
+        PerformanceMetrics metrics = new PerformanceMetrics(clusteringProtocol, parties.size(),parties.getFirst().getRecordsSize(), 0.25f);
         printProtocolResults(metrics);
     }
 
     public static void runMetricSpaceProtocol(boolean blocking, int charsToTruncateFromSoundex) {
-        double maximalIntersection = 0.003;
-        double similarityThreshold = 0.8;
+        float maximalIntersection = 0.003f;
+        float similarityThreshold = 0.8f;
         if (!blocking) {
-            similarityThreshold = 0.85;
+            similarityThreshold = 0.85f;
         }
         Set<String> unionOfBKVs = null;
 
@@ -112,7 +106,7 @@ public class Application {
 
         System.out.println("Metric space protocol...");
         MetricSpaceProtocol metricSpaceProtocol = new MetricSpaceProtocol(parties, maximalIntersection, similarityThreshold, blocking, unionOfBKVs);
-        PerformanceMetrics metrics = new PerformanceMetrics(metricSpaceProtocol, parties.size(),parties.getFirst().getRecordsSize(), 0.25);
+        PerformanceMetrics metrics = new PerformanceMetrics(metricSpaceProtocol, parties.size(),parties.getFirst().getRecordsSize(), 0.25f);
         printProtocolResults(metrics);
     }
 
@@ -131,7 +125,7 @@ public class Application {
         }
     }
 
-    private static void generateNoiseData(List<Party> parties, double noisePercentage) {
+    private static void generateNoiseData(List<Party> parties, float noisePercentage) {
         System.out.println("Generating noise data...");
         for (Party party : parties) {
             party.generateNoise(noisePercentage);
