@@ -156,7 +156,7 @@ public class Party {
         }
     }
 
-    public void generateNoise(double noisePercentage) {
+    public void generateNoise(float noisePercentage) {
         List<List<String>> noiseData = NoiseDataGenerator.generateNoiseData(soundexEncodedRecords.size(), noisePercentage);
         soundexEncodedRecords.addAll(noiseData);
     }

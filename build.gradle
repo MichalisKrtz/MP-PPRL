@@ -22,16 +22,18 @@ test {
     useJUnitPlatform()
 }
 
-// 🔹 Specify the main class (Update this with your actual class name)
 application {
-    mainClass = 'mp_pprl.Main'  // Replace with your main class path
+    mainClass = 'mp_pprl.Main'
 }
 
-// 🔹 Ensure the JAR includes the Main-Class attribute
+run {
+    jvmArgs = ["-Xmx18g", "-Xms4g"]
+}
+
 jar {
     manifest {
         attributes(
-                'Main-Class': 'mp_pprl.Main'  // Replace with your main class
+                'Main-Class': 'mp_pprl.Main'
         )
     }
 }

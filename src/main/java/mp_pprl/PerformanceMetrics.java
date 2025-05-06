@@ -13,7 +13,7 @@ public class PerformanceMetrics {
     private int falsePositives;
     private int falseNegatives;
 
-    public PerformanceMetrics(PPRLProtocol protocol, int numberOfParties,int datasetSize, double matchingPercentage) {
+    public PerformanceMetrics(PPRLProtocol protocol, int numberOfParties,int datasetSize, float matchingPercentage) {
         this.protocol = protocol;
         this.numberOfParties = numberOfParties;
         this.positives = (int) (datasetSize * matchingPercentage);
@@ -35,18 +35,18 @@ public class PerformanceMetrics {
         return runTime;
     }
 
-    public double calculatePrecision() {
-        return (double) truePositives / (truePositives + falsePositives);
+    public float calculatePrecision() {
+        return (float) truePositives / (truePositives + falsePositives);
     }
 
-    public double calculateRecall() {
-        return (double) truePositives / (truePositives + falseNegatives);
+    public float calculateRecall() {
+        return (float) truePositives / (truePositives + falseNegatives);
     }
 
-    public double calculateF1() {
-        double precision = calculatePrecision();
-        double recall = calculateRecall();
-        return (double) 2 * ((precision * recall) / (precision + recall));
+    public float calculateF1() {
+        float precision = calculatePrecision();
+        float recall = calculateRecall();
+        return (float) 2 * ((precision * recall) / (precision + recall));
     }
 
     public void printClusters() {

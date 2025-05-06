@@ -37,7 +37,7 @@ public class WeightedGraph {
         this.clusters.addAll(clusters);
     }
 
-    public void addEdge(Cluster c1, Cluster c2, double similarity) {
+    public void addEdge(Cluster c1, Cluster c2, float similarity) {
         edges.add(new Edge(c1, c2, similarity));
     }
 
