@@ -16,6 +16,7 @@ dependencies {
 
     implementation 'org.xerial:sqlite-jdbc:3.41.2.2'
     implementation 'commons-codec:commons-codec:1.17.1'
+    implementation 'org.ejml:ejml-all:0.43'
 }
 
 test {
@@ -27,7 +28,7 @@ application {
 }
 
 run {
-    jvmArgs = ["-Xmx18g", "-Xms4g"]
+    jvmArgs = ["-Xmx20g", "-Xms4g"]
 }
 
 jar {

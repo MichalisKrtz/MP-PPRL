@@ -26,10 +26,20 @@ public class Application {
 
     public Application() {
         dbPathGroups.add(Arrays.asList(
-                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/A_100000.db",
-                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/B_1_100000.db",
-                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/C_1_100000.db",
-                "/home/michalis/Development/Thesis/Dev/MP-PPRL Databases/authors_2/D_1_100000.db")
+                        "/home/michalis/Dev/Thesis/MP-PPRL dbs/authors/A_200000.db",
+                        "/home/michalis/Dev/Thesis/MP-PPRL dbs/authors/B_1_200000.db",
+                        "/home/michalis/Dev/Thesis/MP-PPRL dbs/authors/C_1_200000.db",
+                        "/home/michalis/Dev/Thesis/MP-PPRL dbs/authors/D_1_200000.db",
+                        "/home/michalis/Dev/Thesis/MP-PPRL dbs/authors/E_1_200000.db"
+
+                )
+        );
+        dbPathGroups.add(Arrays.asList(
+                "/home/michalis/Dev/Thesis/MP-PPRL dbs/authors/A_200000.db",
+                "/home/michalis/Dev/Thesis/MP-PPRL dbs/authors/B_1_200000.db",
+                "/home/michalis/Dev/Thesis/MP-PPRL dbs/authors/C_1_200000.db",
+                "/home/michalis/Dev/Thesis/MP-PPRL dbs/authors/D_1_200000.db"
+                )
         );
     }
 
@@ -42,9 +52,9 @@ public class Application {
             // S-SB
 //            runSoundexBasedProtocol(0, 2, true);
             // EMIC
-            runEarlyMappingClusteringProtocol(0, false);
+//            runEarlyMappingClusteringProtocol(0, false);
             // T-EMIC
-//            runEarlyMappingClusteringProtocol(3, false);
+            runEarlyMappingClusteringProtocol(3, false);
             // DMS
 //            runMetricSpaceProtocol(false, 0);
             // B-DMS
