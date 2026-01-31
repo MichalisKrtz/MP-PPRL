@@ -1,0 +1,186 @@
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+
+> Task :run
+Metric Space Protocol running...
+Retrieving records from the databases...
+Adding records to parties...
+Encoding party records...
+Grouping party records...
+Metric space protocol...
+Matrix size: 476X476
+Matrix size: 462X462
+Matrix size: 468X468
+Matrix size: 466X466
+Matrix size: 1X1
+Matrix size: 2X2
+Matrix size: 46X46
+Matrix size: 46X46
+Matrix size: 45X45
+Matrix size: 47X47
+Matrix size: 410X410
+Matrix size: 384X384
+Matrix size: 397X397
+Matrix size: 403X403
+Matrix size: 2X2
+Matrix size: 3727X3727
+Matrix size: 3662X3662
+Matrix size: 3661X3661
+Matrix size: 3680X3680
+Matrix size: 240X240
+Matrix size: 238X238
+Matrix size: 231X231
+Matrix size: 237X237
+Matrix size: 1X1
+Matrix size: 1408X1408
+Matrix size: 1370X1370
+Matrix size: 1361X1361
+Matrix size: 1380X1380
+Matrix size: 3X3
+Matrix size: 5X5
+Matrix size: 1586X1586
+Matrix size: 1552X1552
+Matrix size: 1535X1535
+Matrix size: 1566X1566
+Matrix size: 5X5
+Matrix size: 7X7
+Matrix size: 850X850
+Matrix size: 834X834
+Matrix size: 826X826
+Matrix size: 843X843
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 2473X2473
+Matrix size: 2431X2431
+Matrix size: 2419X2419
+Matrix size: 2445X2445
+Matrix size: 9X9
+Matrix size: 4X4
+Matrix size: 1059X1059
+Matrix size: 1029X1029
+Matrix size: 1027X1027
+Matrix size: 1039X1039
+Matrix size: 2X2
+Matrix size: 840X840
+Matrix size: 833X833
+Matrix size: 819X819
+Matrix size: 830X830
+Matrix size: 13X13
+Matrix size: 4X4
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 804X804
+Matrix size: 786X786
+Matrix size: 774X774
+Matrix size: 771X771
+Matrix size: 2X2
+Matrix size: 3X3
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 602X602
+Matrix size: 582X582
+Matrix size: 582X582
+Matrix size: 591X591
+Matrix size: 2X2
+Matrix size: 1X1
+Matrix size: 1089X1089
+Matrix size: 1064X1064
+Matrix size: 1066X1066
+Matrix size: 1074X1074
+Matrix size: 7X7
+Matrix size: 4X4
+Matrix size: 127X127
+Matrix size: 124X124
+Matrix size: 120X120
+Matrix size: 130X130
+Matrix size: 3082X3082
+Matrix size: 3030X3030
+Matrix size: 2999X2999
+Matrix size: 3043X3043
+Matrix size: 7X7
+Matrix size: 6X6
+Matrix size: 670X670
+Matrix size: 662X662
+Matrix size: 650X650
+Matrix size: 666X666
+Matrix size: 2X2
+Matrix size: 531X531
+Matrix size: 512X512
+Matrix size: 519X519
+Matrix size: 523X523
+Matrix size: 1X1
+Matrix size: 4X4
+Matrix size: 802X802
+Matrix size: 786X786
+Matrix size: 780X780
+Matrix size: 785X785
+Matrix size: 3X3
+Matrix size: 1X1
+Matrix size: 638X638
+Matrix size: 604X604
+Matrix size: 611X611
+Matrix size: 614X614
+Matrix size: 2X2
+Matrix size: 3X3
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 389X389
+Matrix size: 377X377
+Matrix size: 376X376
+Matrix size: 382X382
+Matrix size: 3X3
+Matrix size: 2X2
+Matrix size: 305X305
+Matrix size: 300X300
+Matrix size: 302X302
+Matrix size: 303X303
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 747X747
+Matrix size: 728X728
+Matrix size: 723X723
+Matrix size: 741X741
+Matrix size: 4X4
+Matrix size: 4X4
+Matrix size: 90X90
+Matrix size: 86X86
+Matrix size: 89X89
+Matrix size: 89X89
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1031X1031
+Matrix size: 1010X1010
+Matrix size: 985X985
+Matrix size: 1019X1019
+Matrix size: 7X7
+Matrix size: 959X959
+Matrix size: 943X943
+Matrix size: 932X932
+Matrix size: 945X945
+Matrix size: 2X2
+==================================================
+Runtime: 1009174
+Precision: 0.99832666
+Recall: 0.90684
+F1: 0.95038676
+Protocol finished successfully
+==================================================
+Time taken: 1304047ms
+
+
+BUILD SUCCESSFUL in 21m 44s
+2 actionable tasks: 1 executed, 1 up-to-date

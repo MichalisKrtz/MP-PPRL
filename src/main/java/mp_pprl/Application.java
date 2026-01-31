@@ -17,13 +17,42 @@ public class Application {
     private static final int numberOfHashFunctions = 30;
     private static final int minimumSubsetSize = 3;
     private static final String[] blockingKeyValues = {"first_name", "last_name"};
-    private static final String[] quasiIdentifiers = {"id", "first_name", "last_name",};
-    //    private static final String[] quasiIdentifiers = {"id", "first_name", "last_name", "middle_name", "address", "city"};
+    //private static final String[] quasiIdentifiers = {"id", "first_name", "last_name"};
+    private static final String[] quasiIdentifiers = {"id", "first_name", "last_name", "middle_name", "address", "city"};
     // Databases
     private final static List<List<String>> dbPathGroups = new ArrayList<>();
     private static List<String> dbPaths = new ArrayList<>();
 
 
+
+    public Application() {
+    	  String localPath = "/home/agroml1/MP-PPRL-dbs";
+
+/*
+        dbPathGroups.add(Arrays.asList(
+                localPath+"/authors_2/A_50000.db",
+                localPath+"/authors_2/B_1_50000.db",
+                localPath+"/authors_2/C_1_50000.db"//,
+                //localPath+"/authors_2/D_1_50000.db",
+                //localPath+"/authors_2/E_1_50000.db"
+                )
+        );
+*/        
+
+
+
+        dbPathGroups.add(Arrays.asList(
+                localPath+"/MP/MP_A_100000.db",
+                localPath+"/MP/MP_B_5_100000.db",
+                localPath+"/MP/MP_C_5_100000.db"/*,
+                localPath+"/MP/MP_D_5_50000.db",
+                localPath+"/MP/MP_E_5_50000.db"*/
+                )
+        );
+
+    }
+
+/*
     public Application() {
         dbPathGroups.add(Arrays.asList(
                         "/home/michalis/Dev/Thesis/MP-PPRL dbs/authors/A_200000.db",
@@ -42,23 +71,23 @@ public class Application {
                 )
         );
     }
-
+*/
     public void run() {
         for (List<String> dbGroup : dbPathGroups) {
             dbPaths = dbGroup;
             long startTime = System.currentTimeMillis();
             // SB
-//            runSoundexBasedProtocol(0, 0, false);
+            // runSoundexBasedProtocol(0, 0, false); // has run
             // S-SB
-//            runSoundexBasedProtocol(0, 2, true);
+            // runSoundexBasedProtocol(0, 2, true); // has run 
             // EMIC
-//            runEarlyMappingClusteringProtocol(0, false);
-            // T-EMIC
-            runEarlyMappingClusteringProtocol(3, false);
+            //runEarlyMappingClusteringProtocol(0, false); //  
+            //T-EMIC
+            // runEarlyMappingClusteringProtocol(3, false); // 
             // DMS
-//            runMetricSpaceProtocol(false, 0);
-            // B-DMS
-//            runMetricSpaceProtocol(true, 3);
+            runMetricSpaceProtocol(false, 0); // 
+            //B-DMS
+            //runMetricSpaceProtocol(true, 3); // 
             long endTime = System.currentTimeMillis();
             System.out.print("Time taken: " + (endTime - startTime) + "ms\n\n");
         }

@@ -1,0 +1,125 @@
+> Task :compileJava
+> Task :processResources NO-SOURCE
+> Task :classes
+
+> Task :run
+Metric Space Protocol running...
+Retrieving records from the databases...
+Adding records to parties...
+Encoding party records...
+Grouping party records...
+Metric space protocol...
+Matrix size: 1256X1256
+Matrix size: 1206X1206
+Matrix size: 1X1
+Matrix size: 4X4
+Matrix size: 116X116
+Matrix size: 111X111
+Matrix size: 863X863
+Matrix size: 842X842
+Matrix size: 1X1
+Matrix size: 6705X6705
+Matrix size: 6601X6601
+Matrix size: 502X502
+Matrix size: 491X491
+Matrix size: 1X1
+Matrix size: 2698X2698
+Matrix size: 2643X2643
+Matrix size: 4X4
+Matrix size: 8X8
+Matrix size: 3171X3171
+Matrix size: 3108X3108
+Matrix size: 5X5
+Matrix size: 11X11
+Matrix size: 1614X1614
+Matrix size: 1595X1595
+Matrix size: 3X3
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 4719X4719
+Matrix size: 4633X4633
+Matrix size: 2X2
+Matrix size: 11X11
+Matrix size: 2220X2220
+Matrix size: 2179X2179
+Matrix size: 3X3
+Matrix size: 9X9
+Matrix size: 1816X1816
+Matrix size: 1785X1785
+Matrix size: 4X4
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1930X1930
+Matrix size: 1894X1894
+Matrix size: 2X2
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 7X7
+Matrix size: 1254X1254
+Matrix size: 1222X1222
+Matrix size: 1X1
+Matrix size: 2X2
+Matrix size: 2165X2165
+Matrix size: 2121X2121
+Matrix size: 1X1
+Matrix size: 16X16
+Matrix size: 230X230
+Matrix size: 221X221
+Matrix size: 1X1
+Matrix size: 6060X6060
+Matrix size: 5977X5977
+Matrix size: 2X2
+Matrix size: 12X12
+Matrix size: 1412X1412
+Matrix size: 1383X1383
+Matrix size: 1X1
+Matrix size: 9X9
+Matrix size: 941X941
+Matrix size: 924X924
+Matrix size: 1X1
+Matrix size: 2X2
+Matrix size: 1588X1588
+Matrix size: 1555X1555
+Matrix size: 1X1
+Matrix size: 5X5
+Matrix size: 1245X1245
+Matrix size: 1233X1233
+Matrix size: 1X1
+Matrix size: 7X7
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 771X771
+Matrix size: 749X749
+Matrix size: 1X1
+Matrix size: 619X619
+Matrix size: 594X594
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1478X1478
+Matrix size: 1451X1451
+Matrix size: 2X2
+Matrix size: 4X4
+Matrix size: 276X276
+Matrix size: 264X264
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1934X1934
+Matrix size: 1879X1879
+Matrix size: 2X2
+Matrix size: 4X4
+Matrix size: 2147X2147
+Matrix size: 2103X2103
+Matrix size: 2X2
+Matrix size: 7X7
+==================================================
+Runtime: 1000103
+Precision: 0.9984435
+Recall: 0.9622
+F1: 0.9799867
+Protocol finished successfully
+==================================================
+Time taken: 1854342ms
+
+
+BUILD SUCCESSFUL in 30m 54s
+2 actionable tasks: 2 executed

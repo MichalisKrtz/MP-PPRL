@@ -1,0 +1,89 @@
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+
+> Task :run
+Early Mapping Clustering Protocol running...
+Retrieving records from the databases...
+Adding records to parties...
+Encoding party records...
+Grouping party records...
+Early mapping clustering protocol...
+Number of blocks: 32
+Number of blocks: 32
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 241X241
+Matrix size: 953X953
+Matrix size: 232X232
+Matrix size: 749X749
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 54X54
+Matrix size: 217X217
+Matrix size: 1308X1308
+Matrix size: 4245X4245
+Matrix size: 20X20
+Matrix size: 86X86
+Matrix size: 142X142
+Matrix size: 713X713
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1780X1780
+Matrix size: 6093X6093
+Matrix size: 584X584
+Matrix size: 1677X1677
+Matrix size: 206X206
+Matrix size: 997X997
+Matrix size: 469X469
+Matrix size: 1858X1858
+Matrix size: 390X390
+Matrix size: 1697X1697
+Matrix size: 573X573
+Matrix size: 2095X2095
+Matrix size: 2171X2171
+Matrix size: 6858X6858
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 107X107
+Matrix size: 392X392
+Matrix size: 45X45
+Matrix size: 236X236
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 362X362
+Matrix size: 1371X1371
+Matrix size: 410X410
+Matrix size: 1625X1625
+Matrix size: 798X798
+Matrix size: 2614X2614
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 570X570
+Matrix size: 2128X2128
+Matrix size: 455X455
+Matrix size: 1441X1441
+Matrix size: 358X358
+Matrix size: 1604X1604
+Matrix size: 932X932
+Matrix size: 3526X3526
+Matrix size: 508X508
+Matrix size: 1738X1738
+Matrix size: 372X372
+Matrix size: 1520X1520
+Matrix size: 590X590
+Matrix size: 2466X2466
+Matrix size: 444X444
+Matrix size: 1546X1546
+==================================================
+Runtime: 2445912
+Precision: 0.9273568
+Recall: 0.99472
+F1: 0.95985794
+Protocol finished successfully
+==================================================
+Time taken: 2491728ms
+
+
+BUILD SUCCESSFUL in 41m 32s
+2 actionable tasks: 1 executed, 1 up-to-date

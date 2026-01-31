@@ -1,0 +1,191 @@
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+
+> Task :run
+Early Mapping Clustering Protocol running...
+Retrieving records from the databases...
+Adding records to parties...
+Encoding party records...
+Grouping party records...
+Early mapping clustering protocol...
+Number of blocks: 110
+Number of blocks: 110
+Matrix size: 473X473
+Matrix size: 497X497
+Matrix size: 479X479
+Matrix size: 466X466
+Matrix size: 1X1
+Matrix size: 21X21
+Matrix size: 46X46
+Matrix size: 49X49
+Matrix size: 44X44
+Matrix size: 42X42
+Matrix size: 4X4
+Matrix size: 405X405
+Matrix size: 449X449
+Matrix size: 409X409
+Matrix size: 388X388
+Matrix size: 17X17
+Matrix size: 3804X3804
+Matrix size: 4134X4134
+Matrix size: 3848X3848
+Matrix size: 3816X3816
+Matrix size: 236X236
+Matrix size: 244X244
+Matrix size: 239X239
+Matrix size: 234X234
+Matrix size: 14X14
+Matrix size: 1427X1427
+Matrix size: 1630X1630
+Matrix size: 1436X1436
+Matrix size: 1417X1417
+Matrix size: 4X4
+Matrix size: 87X87
+Matrix size: 1634X1634
+Matrix size: 1982X1982
+Matrix size: 1670X1670
+Matrix size: 1618X1618
+Matrix size: 5X5
+Matrix size: 209X209
+Matrix size: 854X854
+Matrix size: 932X932
+Matrix size: 863X863
+Matrix size: 849X849
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 2524X2524
+Matrix size: 2792X2792
+Matrix size: 2592X2592
+Matrix size: 2536X2536
+Matrix size: 6X6
+Matrix size: 115X115
+Matrix size: 1061X1061
+Matrix size: 1199X1199
+Matrix size: 1114X1114
+Matrix size: 1075X1075
+Matrix size: 3X3
+Matrix size: 46X46
+Matrix size: 868X868
+Matrix size: 1126X1126
+Matrix size: 945X945
+Matrix size: 872X872
+Matrix size: 5X5
+Matrix size: 176X176
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 800X800
+Matrix size: 885X885
+Matrix size: 817X817
+Matrix size: 807X807
+Matrix size: 36X36
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 621X621
+Matrix size: 724X724
+Matrix size: 618X618
+Matrix size: 614X614
+Matrix size: 3X3
+Matrix size: 62X62
+Matrix size: 1092X1092
+Matrix size: 1259X1259
+Matrix size: 1119X1119
+Matrix size: 1084X1084
+Matrix size: 2X2
+Matrix size: 90X90
+Matrix size: 130X130
+Matrix size: 136X136
+Matrix size: 130X130
+Matrix size: 135X135
+Matrix size: 1X1
+Matrix size: 3310X3310
+Matrix size: 3829X3829
+Matrix size: 3378X3378
+Matrix size: 3280X3280
+Matrix size: 5X5
+Matrix size: 194X194
+Matrix size: 675X675
+Matrix size: 813X813
+Matrix size: 684X684
+Matrix size: 680X680
+Matrix size: 52X52
+Matrix size: 539X539
+Matrix size: 686X686
+Matrix size: 544X544
+Matrix size: 533X533
+Matrix size: 1X1
+Matrix size: 32X32
+Matrix size: 806X806
+Matrix size: 895X895
+Matrix size: 827X827
+Matrix size: 810X810
+Matrix size: 36X36
+Matrix size: 641X641
+Matrix size: 801X801
+Matrix size: 661X661
+Matrix size: 632X632
+Matrix size: 88X88
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 405X405
+Matrix size: 446X446
+Matrix size: 407X407
+Matrix size: 404X404
+Matrix size: 3X3
+Matrix size: 33X33
+Matrix size: 310X310
+Matrix size: 321X321
+Matrix size: 308X308
+Matrix size: 311X311
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 4X4
+Matrix size: 753X753
+Matrix size: 949X949
+Matrix size: 795X795
+Matrix size: 745X745
+Matrix size: 4X4
+Matrix size: 117X117
+Matrix size: 92X92
+Matrix size: 94X94
+Matrix size: 87X87
+Matrix size: 91X91
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 1X1
+Matrix size: 14X14
+Matrix size: 1036X1036
+Matrix size: 1195X1195
+Matrix size: 1070X1070
+Matrix size: 1043X1043
+Matrix size: 3X3
+Matrix size: 86X86
+Matrix size: 975X975
+Matrix size: 1062X1062
+Matrix size: 996X996
+Matrix size: 970X970
+Matrix size: 2X2
+Matrix size: 34X34
+==================================================
+Runtime: 10279675
+Precision: 0.99371976
+Recall: 0.9114
+F1: 0.95078135
+Protocol finished successfully
+==================================================
+Time taken: 10617388ms
+
+
+BUILD SUCCESSFUL in 2h 56m 57s
+2 actionable tasks: 1 executed, 1 up-to-date

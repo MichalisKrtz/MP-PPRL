@@ -1,0 +1,26 @@
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+
+> Task :run
+Metric Space Protocol running...
+Retrieving records from the databases...
+Adding records to parties...
+Encoding party records...
+Metric space protocol...
+Matrix size: 11547X11547
+Matrix size: 47920X47920
+Matrix size: 47854X47854
+Matrix size: 48072X48072
+==================================================
+Runtime: 4350434
+Precision: 0.9956908
+Recall: 0.59152
+F1: 0.7421459
+Protocol finished successfully
+==================================================
+Time taken: 4371564ms
+
+
+BUILD SUCCESSFUL in 1h 12m 52s
+2 actionable tasks: 1 executed, 1 up-to-date

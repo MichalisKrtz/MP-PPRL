@@ -1,0 +1,26 @@
+Starting a Gradle Daemon, 3 busy Daemons could not be reused, use --status for details
+> Task :compileJava
+> Task :processResources NO-SOURCE
+> Task :classes
+
+> Task :run
+Soundex Based Protocol running...
+Retrieving records from the databases...
+Adding records to parties...
+Encoding party records with soundex...
+Generating noise data...
+Truncate data...
+Generating hashes...
+Soundex based protocol...
+==================================================
+Runtime: 291
+Precision: 0.85
+Recall: 3.4E-4
+F1: 6.7972817E-4
+Protocol finished successfully
+==================================================
+Time taken: 11407ms
+
+
+BUILD SUCCESSFUL in 14s
+2 actionable tasks: 2 executed

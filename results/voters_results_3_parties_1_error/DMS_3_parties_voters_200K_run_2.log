@@ -1,0 +1,25 @@
+Starting a Gradle Daemon, 3 busy Daemons could not be reused, use --status for details
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+
+> Task :run
+Metric Space Protocol running...
+Retrieving records from the databases...
+Adding records to parties...
+Encoding party records...
+Metric space protocol...
+Matrix size: 53118X53118
+Matrix size: 56148X56148
+==================================================
+Runtime: 151074885
+Precision: 0.98856026
+Recall: 0.9592
+F1: 0.97365886
+Protocol finished successfully
+==================================================
+Time taken: 151151418ms
+
+
+BUILD SUCCESSFUL in 41h 59m 14s
+2 actionable tasks: 1 executed, 1 up-to-date
