@@ -1,5 +1,6 @@
 package mp_pprl.core;
 
+import mp_pprl.secondary_encoding.SecondaryEncoding;
 import mp_pprl.core.domain.Record;
 import mp_pprl.core.encoding.BloomFilter;
 import mp_pprl.core.encoding.CountingBloomFilter;
@@ -15,18 +16,15 @@ public class Party {
     public final int id;
     private final List<Record> records;
     private final List<BloomFilterEncodedRecord> bloomFilterEncodedRecords;
-
-    public void setBloomFilterEncodedRecordGroups(Map<String, List<BloomFilterEncodedRecord>> bloomFilterEncodedRecordGroups) {
-        this.bloomFilterEncodedRecordGroups = bloomFilterEncodedRecordGroups;
-    }
-
-    private Map<String, List<BloomFilterEncodedRecord>> bloomFilterEncodedRecordGroups;
+    private final Map<String, List<BloomFilterEncodedRecord>> bloomFilterEncodedRecordGroups;
     private final String[] quasiIdentifiers;
     private final String[] blockingKeyValues;
     private final int bloomFilterLength;
     private final int numberOfHashFunctions;
     private final List<List<String>> soundexEncodedRecords;
     private final List<HashedSoundexEncodedRecord> hashedSoundexEncodedRecords;
+    private final List<List<byte[]>> splitsPerRecord;
+    private final List<List<SecondaryEncoding>> encPerRecord;
 
     public Party(int id, String[] quasiIdentifiers, String[] blockingKeyValues, int bloomFilterLength, int numberOfHashFunctions) {
         this.id = id;
@@ -39,8 +37,9 @@ public class Party {
         this.numberOfHashFunctions = numberOfHashFunctions;
         soundexEncodedRecords = new ArrayList<>();
         hashedSoundexEncodedRecords = new ArrayList<>();
+        splitsPerRecord = new ArrayList<>();
+        encPerRecord = new ArrayList<>();
     }
-
 
     /*Encode records to bloom filters. Set the bloom filters of the Records and the Record Identifiers*/
     public void encodeRecords(EncodingHandler encodingHandler) {
@@ -66,6 +65,47 @@ public class Party {
             }
             bloomFilterEncodedRecord.setBloomFilter(bf);
         }
+    }
+
+    public void splitEncodedRecords(int m) {
+        for (BloomFilterEncodedRecord record : bloomFilterEncodedRecords) {
+            List<byte[]> splits = record.bloomFilter.split(m);
+            splitsPerRecord.add(splits);
+        }
+    }
+
+    // compute secondary encodings (absolute positions)
+    public void computeSecondaryEncodings(int m) {
+        for (List<byte[]> splits : splitsPerRecord) {
+            // compute secondary encodings (absolute positions)
+            List<SecondaryEncoding> encs = new ArrayList<>(m);
+            int[] starts = computeSplitStarts(bloomFilterLength, m);
+            for (int j = 0; j < m; j++) {
+                byte[] slice = splits.get(j);
+                long sumPos = 0;
+                int count = 0;
+                for (int b = 0; b < slice.length; b++) {
+                    if (slice[b] == 1) {
+                        sumPos += (long) (starts[j] + b);  // absolute position
+                        count++;
+                    }
+                }
+                encs.add(new SecondaryEncoding(sumPos, count));
+            }
+            encPerRecord.add(encs);
+        }
+    }
+
+    private static int[] computeSplitStarts(int L, int m) {
+        int[] starts = new int[m];
+        int base = L / m;
+        int rem = L % m;
+        int idx = 0;
+        for (int i = 0; i < m; i++) {
+            starts[i] = idx;
+            idx += base + (i < rem ? 1 : 0);
+        }
+        return starts;
     }
 
     public void encodeRecordsWithSoundex(boolean splitFields) {
@@ -142,8 +182,6 @@ public class Party {
         }
     }
 
-
-
     public void generateHashesForSoundexEncodedRecords(EncodingHandler encodingHandler) {
         for(List<String> soundexEncodedRecord : soundexEncodedRecords) {
             StringBuilder hashedData = new StringBuilder();
@@ -203,4 +241,11 @@ public class Party {
         return Optional.empty();
     }
 
+    public List<List<byte[]>> getSplitsPerRecord() {
+        return splitsPerRecord;
+    }
+
+    public List<List<SecondaryEncoding>> getEncPerRecord() {
+        return encPerRecord;
+    }
 }

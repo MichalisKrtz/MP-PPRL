@@ -1,6 +1,9 @@
 package mp_pprl.core.encoding;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
+import java.util.List;
 
 public class BloomFilter {
     private final int length;
@@ -27,6 +30,29 @@ public class BloomFilter {
             }
         }
     }
+
+    // produce m splits (equal or nearly equal)
+    public List<byte[]> split(int m) {
+        List<byte[]> res = new ArrayList<>(m);
+
+        int base = length / m;
+        int rem = length % m;
+        int idx = 0;
+
+        for (int i = 0; i < m; i++) {
+
+            int len = base + (i < rem ? 1 : 0);
+            byte[] slice = new byte[len];
+
+            System.arraycopy(vector, idx, slice, 0, len);
+
+            res.add(slice);
+            idx += len;
+        }
+
+        return res;
+    }
+
 
     public byte[] getVector() {
         return vector;

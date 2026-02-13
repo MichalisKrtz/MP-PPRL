@@ -7,6 +7,7 @@ import mp_pprl.incremental_clustering.EarlyMappingClusteringProtocol;
 import mp_pprl.dynamic_metric_space.MetricSpaceProtocol;
 import mp_pprl.core.Party;
 import mp_pprl.core.domain.RecordRepository;
+import mp_pprl.secondary_encoding.ISEProtocol;
 import mp_pprl.soundex_based.SoundexBasedProtocol;
 
 import java.util.*;
@@ -26,7 +27,7 @@ public class Application {
 
 
     public Application() {
-    	  String localPath = "/home/agroml1/MP-PPRL-dbs";
+    	  String localPath = "/home/michalis/dev/MP-PPRL/MP-PPRL-dbs";
 
 /*
         dbPathGroups.add(Arrays.asList(
@@ -42,11 +43,11 @@ public class Application {
 
 
         dbPathGroups.add(Arrays.asList(
-                localPath+"/MP/MP_A_100000.db",
-                localPath+"/MP/MP_B_5_100000.db",
-                localPath+"/MP/MP_C_5_100000.db"/*,
-                localPath+"/MP/MP_D_5_50000.db",
-                localPath+"/MP/MP_E_5_50000.db"*/
+                localPath+"/MP/MP_A_10000.db",
+                localPath+"/MP/MP_B_5_10000.db",
+                localPath+"/MP/MP_C_5_10000.db",
+                localPath+"/MP/MP_D_5_10000.db",
+                localPath+"/MP/MP_E_5_10000.db"
                 )
         );
 
@@ -63,16 +64,49 @@ public class Application {
             // runSoundexBasedProtocol(0, 2, true); // has run 
             // EMIC
             //runEarlyMappingClusteringProtocol(0, false); //  
-            //T-EMIC
+            // T-EMIC
             // runEarlyMappingClusteringProtocol(3, false); // 
             // DMS
-            runMetricSpaceProtocol(false, 0); // 
-            //B-DMS
-            //runMetricSpaceProtocol(true, 3); // 
+            // runMetricSpaceProtocol(false, 0); //
+            // B-DMS
+            //runMetricSpaceProtocol(true, 3); //
+            // ISE
+            runImprovedSecondaryEncodingProtocol();
             long endTime = System.currentTimeMillis();
             System.out.print("Time taken: " + (endTime - startTime) + "ms\n\n");
         }
 
+    }
+
+    public static void runImprovedSecondaryEncodingProtocol() {
+        System.out.println("Improved Secondary Encoding Protocol running...");
+        int M = 8;         // number of splits
+        int A = 4;         // tolerance parameter (paper uses 'a')
+        double ALPHA = 0.6; // Dice threshold
+        int k = numberOfHashFunctions;
+        List<Party> parties = loadRecordsToParties();
+        encodePartyRecordsToBloomFilters(parties);
+        splitEncodedPartyRecords(parties, M);
+        computeSecondaryEncodingsOfSplitRecords(parties, M);
+
+        System.out.println("Improved Secondary Encoding protocol...");
+        ISEProtocol iseProtocol = new ISEProtocol(parties, M, A, k, ALPHA);
+        int numberOfRecords = parties.getFirst().getRecordsSize();
+        PerformanceMetrics metrics = new PerformanceMetrics(iseProtocol, parties.size(), numberOfRecords, 0.25f);
+        printProtocolResults(metrics);
+
+    }
+
+    private static void computeSecondaryEncodingsOfSplitRecords(List<Party> parties, int M) {
+        for (Party party : parties) {
+            party.computeSecondaryEncodings(M);
+        }
+    }
+
+    private static void splitEncodedPartyRecords(List<Party> parties, int M) {
+        for (Party party : parties) {
+            party.splitEncodedRecords(M);
+        }
     }
 
     public static void runSoundexBasedProtocol(float noisePercentage, int charsToTruncate, boolean splitFields) {
