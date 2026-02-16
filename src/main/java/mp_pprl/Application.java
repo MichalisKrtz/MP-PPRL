@@ -7,8 +7,8 @@ import mp_pprl.incremental_clustering.EarlyMappingClusteringProtocol;
 import mp_pprl.dynamic_metric_space.MetricSpaceProtocol;
 import mp_pprl.core.Party;
 import mp_pprl.core.domain.RecordRepository;
-import mp_pprl.secondary_encoding.ISEProtocol;
 import mp_pprl.soundex_based.SoundexBasedProtocol;
+import mp_pprl.secondary_encoding.ISEProtocol;
 
 import java.util.*;
 
@@ -18,16 +18,62 @@ public class Application {
     private static final int numberOfHashFunctions = 30;
     private static final int minimumSubsetSize = 3;
     private static final String[] blockingKeyValues = {"first_name", "last_name"};
+    private static String[] quasiIdentifiers;
     //private static final String[] quasiIdentifiers = {"id", "first_name", "last_name"};
-    private static final String[] quasiIdentifiers = {"id", "first_name", "last_name", "middle_name", "address", "city"};
+    //private static final String[] quasiIdentifiers = {"id", "first_name", "last_name", "middle_name", "address", "city"};
     // Databases
     private final static List<List<String>> dbPathGroups = new ArrayList<>();
     private static List<String> dbPaths = new ArrayList<>();
+    private String method;
 
+    public static <T> List<T> pickRandom(T[] array, int n, long seed) {
+        List<T> list = new ArrayList<>(Arrays.asList(array));
+        Collections.shuffle(list, new Random(seed));
+        return list.subList(0, n);
+    }
 
+    public Application(String dataset, int datasetSize, int errors, int numParties, String method) {
+        String localPath = "";
+
+        String[] maxParties = {"B", "C", "D", "E"};
+
+        this.method = method;
+
+        if ("authors".equals(dataset)) {
+            quasiIdentifiers = new String[] {
+                    "id", "first_name", "last_name"
+            };
+            localPath += "/authors_2/";
+        } else if ("voters".equals(dataset)) {
+            quasiIdentifiers = new String[] {
+                    "id", "first_name", "last_name",
+                    "middle_name", "address", "city"
+            };
+            localPath += "/MP/MP_";
+        }
+
+        // Shuffle all parties except A
+        List<String> parties =
+                pickRandom(maxParties, numParties-1, System.currentTimeMillis());
+        parties.add(0, "A");
+        System.out.println(Arrays.toString(parties.toArray()));
+
+        for (int i = 0; i < parties.size(); i++) {
+            String party = parties.get(i);
+            String db_filename = null;
+            if (party=="A")
+                db_filename = localPath + parties.get(i) + "_" + datasetSize + ".db";
+            else
+                db_filename = localPath + parties.get(i) + "_"+ errors + "_" + datasetSize + ".db";
+            parties.set(i, db_filename);
+            System.out.println(db_filename);
+        }
+
+        dbPathGroups.add(new ArrayList<>(parties));
+    }
 
     public Application() {
-    	  String localPath = "/home/michalis/dev/MP-PPRL/MP-PPRL-dbs";
+        String localPath = "/home/agroml1/MP-PPRL-dbs";
 
 /*
         dbPathGroups.add(Arrays.asList(
@@ -38,22 +84,54 @@ public class Application {
                 //localPath+"/authors_2/E_1_50000.db"
                 )
         );
-*/        
-
-
+*/
 
         dbPathGroups.add(Arrays.asList(
-                localPath+"/MP/MP_A_10000.db",
-                localPath+"/MP/MP_B_5_10000.db",
-                localPath+"/MP/MP_C_5_10000.db",
-                localPath+"/MP/MP_D_5_10000.db",
-                localPath+"/MP/MP_E_5_10000.db"
+                        localPath+"/MP/MP_A_500000.db",
+                        localPath+"/MP/MP_B_5_500000.db",
+                        localPath+"/MP/MP_C_5_500000.db",
+                        localPath+"/MP/MP_D_5_500000.db",
+                        localPath+"/MP/MP_E_5_500000.db"
                 )
         );
 
     }
 
+    public void run(String selectedMethod) {
+        for (List<String> dbGroup : dbPathGroups) {
+            dbPaths = dbGroup;
+            long startTime = System.currentTimeMillis();
 
+            switch(selectedMethod) {
+                case "SB":
+                    runSoundexBasedProtocol(0, 0, false);
+                    break;
+                case "S-SB":
+                    runSoundexBasedProtocol(0, 2, true);
+                    break;
+                case "EMIC":
+                    runEarlyMappingClusteringProtocol(0, false);
+                    break;
+                case "T-EMIC":
+                    runEarlyMappingClusteringProtocol(3, false);
+                    break;
+                case "DMS":
+                    runMetricSpaceProtocol(false, 0);
+                    break;
+                case "B-DMS":
+                    runMetricSpaceProtocol(true, 3);
+                    break;
+                case "ISE":
+                    runImprovedSecondaryEncodingProtocol();
+                    break;
+                default:
+                    System.out.println("Unsupported Method");
+                    System.exit(-1);
+            }
+            long endTime = System.currentTimeMillis();
+            System.out.print("Time taken: " + (endTime - startTime) + "ms\n\n");
+        }
+    }
     public void run() {
         for (List<String> dbGroup : dbPathGroups) {
             dbPaths = dbGroup;
@@ -61,17 +139,15 @@ public class Application {
             // SB
             // runSoundexBasedProtocol(0, 0, false); // has run
             // S-SB
-            // runSoundexBasedProtocol(0, 2, true); // has run 
+            // runSoundexBasedProtocol(0, 2, true); // has run
             // EMIC
-            //runEarlyMappingClusteringProtocol(0, false); //  
-            // T-EMIC
-            // runEarlyMappingClusteringProtocol(3, false); // 
+            //runEarlyMappingClusteringProtocol(0, false); //
+            //T-EMIC
+            // runEarlyMappingClusteringProtocol(3, false); //
             // DMS
-            // runMetricSpaceProtocol(false, 0); //
-            // B-DMS
+            runMetricSpaceProtocol(false, 0); //
+            //B-DMS
             //runMetricSpaceProtocol(true, 3); //
-            // ISE
-            runImprovedSecondaryEncodingProtocol();
             long endTime = System.currentTimeMillis();
             System.out.print("Time taken: " + (endTime - startTime) + "ms\n\n");
         }
@@ -94,7 +170,6 @@ public class Application {
         int numberOfRecords = parties.getFirst().getRecordsSize();
         PerformanceMetrics metrics = new PerformanceMetrics(iseProtocol, parties.size(), numberOfRecords, 0.25f);
         printProtocolResults(metrics);
-
     }
 
     private static void computeSecondaryEncodingsOfSplitRecords(List<Party> parties, int M) {
